@@ -1,4 +1,4 @@
-/* uDick Test 1
+/* uDick Test 1.0
 Created D.Vidal
 April 23, 2013
 */
