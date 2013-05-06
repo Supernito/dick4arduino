@@ -5,6 +5,8 @@
 	25-04-2013
 */
 
+#include "udick.h"
+
 /*----------------------------------------------------------------------*/
 /*                Basic Timer Interrupt Service Routine                 */
 /*----------------------------------------------------------------------*/
@@ -13,49 +15,6 @@ ISR(TIMER1_COMPA_vect)          // timer compare interrupt service routine
   digitalWrite(ledPin12, digitalRead(ledPin12) ^ 1);   // toggle LED pin
   sys_clock++;
 }
-
-/*===========================================================*/
-/*                     INITIALIZATION                        */
-/*===========================================================*/
-
-/*-----------------------------------------------------------*/
-/* ini_system ---  system initialization	             */
-/*-----------------------------------------------------------*/
-
-void ini_system ( float tick )
-{
-      Serial.println("executing 'ini_system'..." );
-      delay(1000);
-     
-      proc i;
-      Serial.print("Time unit=" );
-      Serial.println(tick, 6);   
-      delay(500);
- 
-      pinMode(ledPin12, OUTPUT);
-      pinMode(ledPin13, OUTPUT);
-            
-      Serial.println("Initializing list of free TCBs..." );
-      delay(500);
- 
-      // < initialize the interrupt vector table >
-      /* initialize the list of free TCBs and semaphores */
-      for ( i=0; i < MAXPROC-1; i++ ) vdes[i].next = i + 1;
-      vdes[MAXPROC-1].next = NIL;
-      
-      Serial.println("Initializing list of free semaphores..." );
-      delay(500);
-      /* initialize the list of free semaphores */    
-      for ( i=0; i < MAXSEM-1; i++ )  vsem[i].next = i + 1;
-      vsem[MAXSEM-1].next = NIL;
-      ready = idle = zombie = NIL;
-      freetcb = freesem = 0;
-      
-      util_fact = 0;    
-
-      // < initialize the TCB of the main process >
-      // pexe = <main index>;
-};
 
 /*===========================================================*/
 /*                  LOW-LEVEL PRIMITIVES                     */
@@ -460,19 +419,6 @@ proc p;
 //     vsem[s].count++;    /* returning the resource           */
 //     < enable cpu interrupts >
 // }
-
-/*===========================================================*/
-/*                TASK' STATUS INQUIRY                       */
-/*===========================================================*/
-
-
-/*-----------------------------------------------------------*/
-/* get_time ---  returns the system time in milliseconds     */
-/*-----------------------------------------------------------*/
-float     get_time ( void )
-{
-    return tick * sys_clock;
-}
 
 
 /*-----------------------------------------------------------*/

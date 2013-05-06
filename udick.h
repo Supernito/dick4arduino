@@ -1,20 +1,26 @@
 /*
 	Test 1
-	uDick.h
-	Miguel Ángel Ortiz
-	25-04-2013
-*/
+ 	uDick.h
+ 	Miguel Ángel Ortiz
+ 	25-04-2013
+ */
 /*---------------------------------------------------------------------*/
 /*  Para usar los tipos estándar y las constantes del lenguaje Arduino */
 /*---------------------------------------------------------------------*/
-#include "WProgram.h"
+#include "Arduino.h"
+
+/*-----------------------------------------------------------*/
+/*                  Test PINs definition                     */
+/*-----------------------------------------------------------*/
+#define ledPin12 12
+#define ledPin13 13
 
 /*---------------------------------------------------------------------*/
 /*                      Data types                                     */
 /*---------------------------------------------------------------------*/
 typedef  int    queue;    /* head index 			       */
-typedef  int    sem;	  /* semaphore index 	                       */
-typedef  int    proc;	  /* process index 		               */
+typedef  int    sem; 	  /* semaphore index 	                       */
+typedef  int    proc; 	  /* process index 		               */
 typedef  int    cab;      /* cab (cyclical asynchronous buffers) index */
 typedef  char*  pointer;  /* memory pointer 	                       */
 
@@ -71,8 +77,7 @@ float 	util_fact;      /* utilization factor	             */
 /*                      Time management                                 */
 /*----------------------------------------------------------------------*/
 unsigned long	sys_clock;          /* system time of ticks after reset	*/
-float		time_unit;          /* unit of time (ms) (time / tick)	*/
-float           tick=62.0/62500.0;  /* tick                             */
+float		time_unit;          /* unit of time (ms) (time / tick)	*/                 
 unsigned long   system_time;        /* system time in secs. after reset	*/
 unsigned long   last_sys_clock;
 unsigned long   interval;
@@ -81,28 +86,28 @@ unsigned long   interval;
 /*          Task Control Block structure definition        */
 /*---------------------------------------------------------*/
 struct tcb {
-   char   name[MAXLEN+1];   /* task identifier name        */
-   proc   (*addr)();        /* task address                */
-   int    type;             /* task type (periodic, etc.)  */
-   int    state;            /* task state                  */
-   long   dline;            /* absolute deadline           */
-   int    period;           /* period / relative deadline, */
-                            /* or priority of NRT          */
-   int    prt;              /* task priority               */
-   int    wcet;             /* wost-case execution time    */
-   float  util;             /* task utilization factor     */
-   int    *context;         /* pointer to the context      */
-   proc   next;             /* pointer to the next tcb     */
-   proc   prev;             /* pointer to previous tcb     */
+  char   name[MAXLEN+1];   /* task identifier name        */
+  proc   (*addr)();        /* task address                */
+  int    type;             /* task type (periodic, etc.)  */
+  int    state;            /* task state                  */
+  long   dline;            /* absolute deadline           */
+  int    period;           /* period / relative deadline, */
+  /* or priority of NRT          */
+  int    prt;              /* task priority               */
+  int    wcet;             /* wost-case execution time    */
+  float  util;             /* task utilization factor     */
+  int    *context;         /* pointer to the context      */
+  proc   next;             /* pointer to the next tcb     */
+  proc   prev;             /* pointer to previous tcb     */
 };
 
 /*-----------------------------------------------------------*/
 /*       Semaphore Control Block structure definition        */
 /*-----------------------------------------------------------*/
 struct scb {
-   int    count;            /* semaphore counter             */
-   queue  qsem;             /* semaphore queue               */
-   sem    next;             /* pointer to the next semaphore */
+  int    count;            /* semaphore counter             */
+  queue  qsem;             /* semaphore queue               */
+  sem    next;             /* pointer to the next semaphore */
 };
 
 /*-----------------------------------------------------------*/
@@ -147,7 +152,7 @@ void load_context ( void );
 /*-----------------------------------------------------------*/
 /* insert   ---  a task in a queue based on its deadline     */
 /*-----------------------------------------------------------*/
- void insert ( proc i, queue *que );
+void insert ( proc i, queue *que );
 
 
 /*-----------------------------------------------------------*/
@@ -200,11 +205,11 @@ void   wake_up ( void ); /* timer interrupt handling routine  */
 /* create  --- creates a task and puts it in sleep state     */
 /*-----------------------------------------------------------*/
 proc create (
-	char		name[MAXLEN+1],         /* task name */
-	proc		(*addr)(),           /* task address */
-	int		type,            /* type (HARD, NRT) */
-	float		period,/* period, relative dl or pri */
-	float wcet );                       /* execution time */
+char		name[MAXLEN+1],         /* task name */
+proc		(*addr)(),           /* task address */
+int		type,            /* type (HARD, NRT) */
+float		period,/* period, relative dl or pri */
+float wcet );                       /* execution time */
 
 /*-----------------------------------------------------------*/
 /* guarantee  --- guarantees the feasibility of a hard task  */
@@ -219,12 +224,12 @@ int activate ( proc p );
 /*-----------------------------------------------------------*/
 /* sleep  --- suspends itself in a sleep state               */
 /*-----------------------------------------------------------*/
- int     sleep ( void );
+int     sleep ( void );
 
 /*-----------------------------------------------------------*/
 /* end_cycle  --- inserts a task in the idle queue           */
 /*-----------------------------------------------------------*/
- int      end_cycle ( void );
+int      end_cycle ( void );
 
 /*-----------------------------------------------------------*/
 /*  ---            Example of periodic task      ---         */
@@ -245,15 +250,15 @@ void kill ( proc p );
 /*-----------------------------------------------------------*/
 /* newsem  ---  allocates and initializes a semaphore        */
 /*-----------------------------------------------------------*/
- sem      newsem (int n );
+sem      newsem (int n );
 /*-----------------------------------------------------------*/
 /* delsem  ---  allocates and initializes a semaphore        */
 /*-----------------------------------------------------------*/
- void      delsem ( sem s );
+void      delsem ( sem s );
 /*-----------------------------------------------------------*/
 /* wait  ---  wait for an event                              */
 /*-----------------------------------------------------------*/
- void      wait ( sem s );
+void      wait ( sem s );
 /*-----------------------------------------------------------*/
 /* signal ---  signals an event                              */
 /*-----------------------------------------------------------*/
@@ -261,12 +266,6 @@ void     signal ( sem s );
 /*===========================================================*/
 /*                TASK' STATUS INQUIRY                       */
 /*===========================================================*/
-
-
-/*-----------------------------------------------------------*/
-/* get_time ---  returns the system time in milliseconds     */
-/*-----------------------------------------------------------*/
-float     get_time ( void );
 
 /*-----------------------------------------------------------*/
 /* get_state ---  returns the state of a task                */
@@ -287,33 +286,34 @@ float      get_period ( proc p );
 /*-----------------------------------------------------------*/
 /*             to insert a message in a CAB                  */
 /*-----------------------------------------------------------*/
-     buf_pointer = reserve (cab_id);
-      < copy message in *buf_pointer >
-      putmes (buf_pointer, cab_id);
- 
+//buf_pointer = reserve (cab_id);
+//< copy message in *buf_pointer >
+//putmes (buf_pointer, cab_id);
+
 /*-----------------------------------------------------------*/
 /*             to get a message from a CAB                   */
 /*-----------------------------------------------------------*/
-      mes_pointer = getmes (cab_id);
-      < use message  >
-      unget (mes_pointer, cab_id);
+//mes_pointer = getmes (cab_id);
+//< use message  >
+//unget (mes_pointer, cab_id);
 
 /*-----------------------------------------------------------*/
 /* reserve  ---  reserves a buffer in a CAB                  */
 /*-----------------------------------------------------------*/
- pointer     reserve (cab c);
+pointer     reserve (cab c);
 /*-----------------------------------------------------------*/
 /* putmes  ---  puts a message in a CAB                      */
 /*-----------------------------------------------------------*/
- void     putmes(cab c, pointer p);
+void     putmes(cab c, pointer p);
 
 /*-----------------------------------------------------------*/
 /* getmes  ---  gets a pointer to the most recent buffer     */
 /*-----------------------------------------------------------*/
- pointer     getmes(cab c);
+pointer     getmes(cab c);
 
 /*-----------------------------------------------------------*/
 /* unget --- deallocates a buffer only if it is not accessed */
 /*           and it is not the most recent buffer            */
 /*-----------------------------------------------------------*/
- void     unget(cab c, pointer p);
+void     unget(cab c, pointer p);
+

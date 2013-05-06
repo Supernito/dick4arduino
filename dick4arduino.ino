@@ -7,12 +7,7 @@
 /*                  RTOS                                     */
 /*-----------------------------------------------------------*/
 #include "udick.h"
-
-/*-----------------------------------------------------------*/
-/*                  Test PINs definition                     */
-/*-----------------------------------------------------------*/
-#define ledPin12 12
-#define ledPin13 13
+float           tick=62.0/62500.0;  /* tick
 
 /*-----------------------------------------------------------*/
 /*  Timer, serial comms. and test PINs initialization        */
@@ -42,6 +37,62 @@ void setup() {
   ini_system(tick);
 }
 
+/*===========================================================*/
+/*                     INITIALIZATION                        */
+/*===========================================================*/
+
+/*-----------------------------------------------------------*/
+/* ini_system ---  system initialization	             */
+/*-----------------------------------------------------------*/
+
+void ini_system ( float tick )
+{
+      Serial.println("executing 'ini_system'..." );
+      delay(1000);
+     
+      proc i;
+      Serial.print("Time unit=" );
+      Serial.println(tick, 6);   
+      delay(500);
+ 
+      pinMode(ledPin12, OUTPUT);
+      pinMode(ledPin13, OUTPUT);
+            
+      Serial.println("Initializing list of free TCBs..." );
+      delay(500);
+ 
+      // < initialize the interrupt vector table >
+      /* initialize the list of free TCBs and semaphores */
+      for ( i=0; i < MAXPROC-1; i++ ) vdes[i].next = i + 1;
+      vdes[MAXPROC-1].next = NIL;
+      
+      Serial.println("Initializing list of free semaphores..." );
+      delay(500);
+      /* initialize the list of free semaphores */    
+      for ( i=0; i < MAXSEM-1; i++ )  vsem[i].next = i + 1;
+      vsem[MAXSEM-1].next = NIL;
+      ready = idle = zombie = NIL;
+      freetcb = freesem = 0;
+      
+      util_fact = 0;    
+
+      // < initialize the TCB of the main process >
+      // pexe = <main index>;
+};
+
+/*===========================================================*/
+/*                TASK' STATUS INQUIRY                       */
+/*===========================================================*/
+
+
+/*-----------------------------------------------------------*/
+/* get_time ---  returns the system time in milliseconds     */
+/*-----------------------------------------------------------*/
+float get_time ( void )
+{
+    return tick * sys_clock;
+}
+
 /*-----------------------------------------------------------*/
 /*                             Main                          */
 /*-----------------------------------------------------------*/
@@ -54,7 +105,6 @@ void loop()
   Serial.print("System time = ");                       
   Serial.print(system_time); 
   //Serial.print("\t Time unit = ");
-  //Serial.print(tick,6);
   Serial.print("   sys_clock = ");
   Serial.println(sys_clock,6);
   
