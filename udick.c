@@ -211,7 +211,7 @@ proc   create (
 	float wcet )                       /* execution time */
 {
 proc p;
-//    < disable cpu interrupts >
+    cli(); //< disable cpu interrupts >
 //    p = getfirst ( &freetcb );
 //    if ( p == NIL ) abort( NO_TCB );
 //    vdes[p].name = name; /* Actually, characters should be copied */
@@ -228,7 +228,7 @@ proc p;
     if ( vdes[p].type == HARD ) 
 //         if ( !guarantee( p ) ) return NO_GUARANTEE;
 //    < initialize process stack >
-//    < enable cpu interrupts >
+    sei(); //< enable cpu interrupts >
     return p;
 }
 
@@ -315,7 +315,7 @@ proc p;
 /*-----------------------------------------------------------*/
 // int      end_process ( void )
 // {
-//     < disable cpu interrupts >
+//     cli(); //< disable cpu interrupts >
 //     if ( vdes[pexe].type == HARD )
 //          insert ( pexe, &zombie );
 //     else {
@@ -331,7 +331,7 @@ proc p;
 /*-----------------------------------------------------------*/
 //void      kill ( proc p )
 // {
-//     < disable cpu interrupts >
+//     cli(); //< disable cpu interrupts >
 //     if ( pexe == p ) {
 //          end_process ();
 //          return;
@@ -344,7 +344,7 @@ proc p;
 //          vdes[pexe].state = FREE;
 //          insert ( pexe, &freetcb );
 //     }
-//     < enable cpu interrupts >
+//     sei(); //< enable cpu interrupts >
 //}
 
 /*===========================================================*/
@@ -357,14 +357,14 @@ proc p;
 //  sem      newsem (int n )
 //  {
 //  sem      s;
-//     < disable cpu interrupts >
+//     cli(); //< disable cpu interrupts >
 //     s = freesem;              /* first free semaphore index   */
 //     if ( s == NIL ) abort( NO_SEM );
 //     freesem = vsem[s].next;   /* update the freesem list      */
 //     vsem[s].count = n;        /* initialize counter           */
 //     vsem[s].qsem = NIL;       /* initialize sem.queue         */
                              /* (for wait queue)             */
-//     < enable cpu interrupts >
+//     sei(); //< enable cpu interrupts >
 //     return s;
 //  }
 
@@ -373,10 +373,10 @@ proc p;
 /*-----------------------------------------------------------*/
 //  void      delsem ( sem s )
 //  {
-//       < disable cpu interrupts >
+//       cli(); //< disable cpu interrupts >
 //       vsem[s].next = freesem;        /* inserts s at the head */
 //       freesem = s;                   /* of the freesem list   */
-//       < enable cpu interrupts >
+//       sei(); //< enable cpu interrupts >
 //       return s;
 //  }
 
@@ -385,7 +385,7 @@ proc p;
 /*-----------------------------------------------------------*/
 //  void      wait ( sem s )
 //  {
-//   < disable cpu interrupts >
+//   cli(); //< disable cpu interrupts >
 //   if ( vsem[s].count > 0 )        	/* When a resource remains, */
 //         vsem[s].count --;          	/* a resource is given      */
 //   else {                      	    /* When resources are exhausted,*/
@@ -396,7 +396,7 @@ proc p;
         				/* as the next running task */
 //  	load_context ();  /* The next running task is loaded on CPU */
 //   }
-//   < enable cpu interrupts >
+//   sei(); //< enable cpu interrupts >
 //  }
 
 /*-----------------------------------------------------------*/
@@ -405,7 +405,7 @@ proc p;
 // void     signal ( sem s )
 // {
 //     proc p;
-//     < disable cpu interrupts >
+//     cli(); //< disable cpu interrupts >
 //     if (!empty( vsem[s].qsem )) { /* When there is a task that 
         			 /* is waiting for the semaphore */
 //         p = getfirst ( &vsem[s].qsem );
@@ -417,7 +417,7 @@ proc p;
 //     }
 //     else                /* When there is not a task waiting */
 //     vsem[s].count++;    /* returning the resource           */
-//     < enable cpu interrupts >
+//     sei(); //< enable cpu interrupts >
 // }
 
 
@@ -469,11 +469,11 @@ proc p;
 //  pointer     reserve (cab c)
 //  {
 //  pointer     p;
-//       < disable cpu interrupts >
+//       cli(); //< disable cpu interrupts >
 //       p = c.free;                 /* get a free buffer        */
 //       c.free = p.next;            /* update the free list     */
 //       return(p);
-//       < enable cpu interrupts >
+//       sei(); //< enable cpu interrupts >
 //  }
 
 /*-----------------------------------------------------------*/
@@ -481,13 +481,13 @@ proc p;
 /*-----------------------------------------------------------*/
 //  void     putmes(cab c, pointer p)
 //  {
-//       < disable cpu interrupts >
+//       cli(); //< disable cpu interrupts >
 //       if (c.mrb.use == 0) {           /* if not accessed,     */
 //            c.mrb.next = c.free;       /* deallocates the mrb  */     
 //            c.free = c.mrb;
 //       }
 //       c.mrb = p;                      /* update the mrb       */
-//       < enable cpu interrupts >
+//       sei(); //< enable cpu interrupts >
 //  }
 
 
@@ -497,11 +497,11 @@ proc p;
 //  pointer     getmes(cab c)
 //  {
 //  pointer     p;
-//       < disable cpu interrupts >
+//       cli(); //< disable cpu interrupts >
 //       p = c.mrb;                 /* get the pointer to mrb    */
 //       p.use = p.use + 1;         /* increment the counter     */
 //       return(p);
-//       < enable cpu interrupts >
+//       sei(); //< enable cpu interrupts >
 //  }
 
 
@@ -511,11 +511,11 @@ proc p;
 /*-----------------------------------------------------------*/
 //  void     unget(cab c, pointer p)
 //  {
-//       < disable cpu interrupts >
+//       cli(); //< disable cpu interrupts >
 //       p.use = p.use - 1;		/*decrement the counter      */
 //       if ((p.use == 0) && (p ! = c.mrb)) {
 //            p.next = c.free;
 //            c.free = p;
 //       }
-//       < enable cpu interrupts >
+//       sei(); //< enable cpu interrupts >
 //  }
