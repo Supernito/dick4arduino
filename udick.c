@@ -82,17 +82,17 @@ int      *pc;                  /* pointer to context of pexe */
 /*-----------------------------------------------------------*/
 /* extract   ---  a task from a queue                        */
 /*-----------------------------------------------------------*/
-//proc extract ( proc i, queue *que ) /* index ("TCBs num. ")  
-//				       and queue desired task */
-//{
-//int      p, q;                         /* auxiliary pointers  */
-//     p = vdes[i].prev; /*Linking information from current TCB */
-//     q = vdes[i].next;
-//     if ( p == NIL ) *que = q;              /* first element  */
-//     else vdes[p].next = vdes[i].next;
-//     if ( q != NIL ) vdes[q].prev = vdes[i].prev;
-//     return i;
-//}
+proc extract ( proc i, queue *que ) /* index ("TCBs num. ")
+				       and queue desired task */
+{
+int      p, q;                         /* auxiliary pointers  */
+     p = vdes[i].prev; /*Linking information from current TCB */
+     q = vdes[i].next;
+     if ( p == NIL ) *que = q;              /* first element  */
+     else vdes[p].next = vdes[i].next;
+     if ( q != NIL ) vdes[q].prev = vdes[i].prev;
+     return i;
+}
 
 /*-----------------------------------------------------------*/
 /* getfirst   ---  extracts a task at the head of a queue    */
