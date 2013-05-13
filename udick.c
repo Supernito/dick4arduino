@@ -55,30 +55,28 @@ int      *pc;                  /* pointer to context of pexe */
 /*-----------------------------------------------------------*/
 /* insert   ---  a task in a queue based on its deadline     */
 /*-----------------------------------------------------------*/
-// void     insert ( proc i, queue *que )
-//{		
-//	/*  *que is the pointer to the queue to be used	    	*/
-//     long dl;         /* deadline of the task to be inserted 	*/
-//     int  p;          /* pointer to the previous TCB         	*/
-//     int  q;          /* pointer to the next TCB             	*/
-	
-//	p = NIL;      /* Start at the beginning of the queue 	*/
-//	q = *que; 
-//	dl = vdes[i].dline; /*Use deadline of the current TCB	*/
+ void     insert ( proc i, queue *que )
+{
+	/*  *que is the pointer to the queue to be used	    	*/
+     long dl;         /* deadline of the task to be inserted 	*/
+     int  p;          /* pointer to the previous TCB         	*/
+     int  q;          /* pointer to the next TCB             	*/
+	p = NIL;      /* Start at the beginning of the queue 	*/
+	q = *que;
+	dl = vdes[i].dline; /*Use deadline of the current TCB	*/
 
 	  /* find the element before the insertion point	*/
-//     while ( ( q != NIL ) && ( dl >= vdes[q].dline ) ) {
-		      /* Surf queue gradually until .. 		*/
-//        p = q; 
-//        q = vdes[q].next;
-//     }
-
-//     if ( p != NIL ) vdes[p].next = i; 
-//     else *que = i;
-//     if ( q != NIL ) vdes[q].prev = i;
-//     vdes[i].next = q; 
-//     vdes[i].prev = p;
-//}
+     while ( ( q != NIL ) && ( dl >= vdes[q].dline ) ) {
+      /* Surf queue gradually until .. 		*/
+        p = q;
+        q = vdes[q].next;
+     }
+     if ( p != NIL ) vdes[p].next = i;
+     else *que = i;
+     if ( q != NIL ) vdes[q].prev = i;
+     vdes[i].next = q;
+     vdes[i].prev = p;
+}
 
 
 /*-----------------------------------------------------------*/
