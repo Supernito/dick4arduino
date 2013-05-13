@@ -120,13 +120,13 @@ long    firstdline ( queue *que )
 /*-----------------------------------------------------------*/
 /* empty    ---  returns TRUE if a queue is empty            */
 /*-----------------------------------------------------------*/
-//int empty ( queue *que )
-//{
-//     if ( *que == NIL )
-//         return TRUE;
-//     else
-//         return FALSE;
-//}
+int empty ( queue *que )
+{
+     if ( *que == NIL )
+         return TRUE;
+     else
+         return FALSE;
+}
 
 /*===========================================================*/
 /*                SCHEDULING MECHANISM                       */
