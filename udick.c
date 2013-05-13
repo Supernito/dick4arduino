@@ -112,10 +112,10 @@ proc getfirst ( queue *que )
 /*-----------------------------------------------------------*/
 /* firstdline  ---  returns the deadline of the first task   */
 /*-----------------------------------------------------------*/
-//long    firstdline ( queue *que )
-//{
-//     return vdes[*que].dline;
-//};
+long    firstdline ( queue *que )
+{
+     return vdes[*que].dline;
+};
 
 /*-----------------------------------------------------------*/
 /* empty    ---  returns TRUE if a queue is empty            */
