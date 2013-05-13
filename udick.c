@@ -99,15 +99,15 @@ int      *pc;                  /* pointer to context of pexe */
 /*-----------------------------------------------------------*/
 /* getfirst   ---  extracts a task at the head of a queue    */
 /*-----------------------------------------------------------*/
-//proc getfirst ( queue *que )
-//{   
-//     int     q;        	     /* pointer to the first element */
-//     q = *que;
-//     if ( q == NIL ) return NIL;
-//     *que = vdes[q].next;
-//     vdes[*que].prev = NIL;
-//     return q;
-//}
+proc getfirst ( queue *que )
+{
+     int     q;        	     /* pointer to the first element */
+     q = *que;
+     if ( q == NIL ) return NIL;
+     *que = vdes[q].next;
+     vdes[*que].prev = NIL;
+     return q;
+}
 
 /*-----------------------------------------------------------*/
 /* firstdline  ---  returns the deadline of the first task   */
