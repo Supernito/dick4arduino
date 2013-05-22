@@ -1,35 +1,27 @@
-/*
-	Test 1
- 	uDick.h
- 	Miguel Ángel Ortiz
- 	25-04-2013
+/**
+ *	uDick Real Time Operating System
+ *
+ *	Diseño de Sistemas Operativos
+ *	Curso 2012 - 2013
  */
-/*---------------------------------------------------------------------*/
-/*  Para usar los tipos estándar y las constantes del lenguaje Arduino */
-/*---------------------------------------------------------------------*/
-#include "Arduino.h"
-
-/*-----------------------------------------------------------*/
-/*                  Test PINs definition                     */
-/*-----------------------------------------------------------*/
-#define ledPin12 12
-#define ledPin13 13
+#ifndef UDICK_H
+#define UDICK_H
 
 /*---------------------------------------------------------------------*/
 /*                      Data types                                     */
 /*---------------------------------------------------------------------*/
-typedef  int    queue;    /* head index 			       */
+typedef  int    queue;    /* head index 			                   */
 typedef  int    sem; 	  /* semaphore index 	                       */
-typedef  int    proc; 	  /* process index 		               */
+typedef  int    proc; 	  /* process index 		                       */
 typedef  int    cab;      /* cab (cyclical asynchronous buffers) index */
 typedef  char*  pointer;  /* memory pointer 	                       */
 
 /*---------------------------------------------------------------------*/
 /*                      Global constants                               */
 /*---------------------------------------------------------------------*/
-#define MAXLEN      12           /* max string length		       */
-#define MAXPROC     32           /* max number of tasks		       */
-#define MAXSEM      32           /* max number of semaphores	       */
+#define MAXLEN      12           /* max string length		   */
+#define MAXPROC     32           /* max number of tasks		   */
+#define MAXSEM      32           /* max number of semaphores   */
 #define MAXDLINE    0x7FFFFFFF   /* max deadline		       */
 #define PRT_LEV     255          /* priority levels		       */
 #define NIL         -1           /* null pointer		       */
@@ -42,6 +34,7 @@ typedef  char*  pointer;  /* memory pointer 	                       */
 /*-----------------------------------------------------------*/
 #define HARD      1      /* critical task                    */
 #define NRT       2      /* non real-time task               */
+
 /*-----------------------------------------------------------*/
 /*                      Task states                          */
 /*-----------------------------------------------------------*/
@@ -52,6 +45,7 @@ typedef  char*  pointer;  /* memory pointer 	                       */
 #define IDLE      4      /* idle state                       */
 #define WAIT      5      /* wait state                       */
 #define ZOMBIE    6      /* zombie state                     */
+
 /*-----------------------------------------------------------*/
 /*                      Error messages                       */
 /*-----------------------------------------------------------*/
@@ -63,73 +57,72 @@ typedef  char*  pointer;  /* memory pointer 	                       */
 #define NO_SEM         -5   /* too many semaphores           */
 
 /*-----------------------------------------------------------*/
-/*                      Actual values                        */
+/*                  Test PINs definition                     */
 /*-----------------------------------------------------------*/
-proc 	pexe;           /* task in execution	             */
-queue	ready;          /* ready queue 		             */
-queue	idle;           /* idle queue		             */
-queue	zombie;         /* zombie queue		             */
-queue	freetcb;        /* queue of free tcbs	             */
-queue 	freesem;        /* queue of free semaphores          */
-float 	util_fact;      /* utilization factor	             */
+#define ledPin12 12
+#define ledPin13 13
 
 /*----------------------------------------------------------------------*/
 /*                      Time management                                 */
 /*----------------------------------------------------------------------*/
-unsigned long	sys_clock;          /* system time of ticks after reset	*/
-float		time_unit;          /* unit of time (ms) (time / tick)	*/                 
-unsigned long   system_time;        /* system time in secs. after reset	*/
-unsigned long   last_sys_clock;
-unsigned long   interval;
+extern unsigned long	sys_clock;          /* system time of ticks after reset	*/
+extern float		    time_unit;          /* unit of time (ms) (time / tick)	*/
+extern unsigned long    system_time;        /* system time in secs. after reset	*/
+extern unsigned long    last_sys_clock;
+extern unsigned long    interval;
+extern float            tick;               /* tick */
 
 /*---------------------------------------------------------*/
 /*          Task Control Block structure definition        */
 /*---------------------------------------------------------*/
 struct tcb {
-  char   name[MAXLEN+1];   /* task identifier name        */
-  proc   (*addr)();        /* task address                */
-  int    type;             /* task type (periodic, etc.)  */
-  int    state;            /* task state                  */
-  long   dline;            /* absolute deadline           */
-  int    period;           /* period / relative deadline, */
-  /* or priority of NRT          */
-  int    prt;              /* task priority               */
-  int    wcet;             /* wost-case execution time    */
-  float  util;             /* task utilization factor     */
-  int    *context;         /* pointer to the context      */
-  proc   next;             /* pointer to the next tcb     */
-  proc   prev;             /* pointer to previous tcb     */
+    char   name[MAXLEN+1];   /* task identifier name        */
+    proc   (*addr)();        /* task address                */
+    int    type;             /* task type (periodic, etc.)  */
+    int    state;            /* task state                  */
+    long   dline;            /* absolute deadline           */
+    int    period;           /* period / relative deadline, */
+    /* or priority of NRT          */
+    int    prt;              /* task priority               */
+    int    wcet;             /* wost-case execution time    */
+    float  util;             /* task utilization factor     */
+    int    *context;         /* pointer to the context      */
+    proc   next;             /* pointer to the next tcb     */
+    proc   prev;             /* pointer to previous tcb     */
 };
 
 /*-----------------------------------------------------------*/
 /*       Semaphore Control Block structure definition        */
 /*-----------------------------------------------------------*/
 struct scb {
-  int    count;            /* semaphore counter             */
-  queue  qsem;             /* semaphore queue               */
-  sem    next;             /* pointer to the next semaphore */
+    int    count;            /* semaphore counter             */
+    queue  qsem;             /* semaphore queue               */
+    sem    next;             /* pointer to the next semaphore */
 };
 
 /*-----------------------------------------------------------*/
-/*                  Array of TCB and array of SCB            */
+/*   Cyclic Asynchronous Buffer (CAB) structure definition   */
 /*-----------------------------------------------------------*/
-struct  tcb     vdes[MAXPROC];  /* array of tcb's	     */
-struct  scb     vsem[MAXSEM];   /* array of scb's	     */
+/* TODO: Implement CAB structure */
 
-/*----------------------------------------------------------------------*/
-/*                Basic Timer Interrupt Service Routine                 */
-/*----------------------------------------------------------------------*/
-ISR(TIMER1_COMPA_vect);          // timer compare interrupt service routine
 
 /*===========================================================*/
 /*                     INITIALIZATION                        */
 /*===========================================================*/
 
 /*-----------------------------------------------------------*/
-/* ini_system ---  system initialization	             */
+/* ini_system ---  system initialization	                 */
 /*-----------------------------------------------------------*/
+void ini_system(float tick);
 
-void ini_system ( float tick );
+/*===========================================================*/
+/*                TASK' STATUS INQUIRY                       */
+/*===========================================================*/
+
+/*-----------------------------------------------------------*/
+/* get_time ---  returns the system time in milliseconds     */
+/*-----------------------------------------------------------*/
+float get_time(void);
 
 /*===========================================================*/
 /*                  LOW-LEVEL PRIMITIVES                     */
@@ -138,12 +131,12 @@ void ini_system ( float tick );
 /*-----------------------------------------------------------*/
 /* save_context ---  of the task in execution                */
 /*-----------------------------------------------------------*/
-void     save_context ( void );
+void save_context(void);
 
 /*-----------------------------------------------------------*/
 /* load_context ---  of the task to be executed              */
 /*-----------------------------------------------------------*/
-void load_context ( void );
+void load_context(void);
 
 /*===========================================================*/
 /*                    LIST MANAGEMENT                        */
@@ -152,29 +145,29 @@ void load_context ( void );
 /*-----------------------------------------------------------*/
 /* insert   ---  a task in a queue based on its deadline     */
 /*-----------------------------------------------------------*/
-void insert ( proc i, queue *que );
+void insert(proc i, queue *que);
 
 
 /*-----------------------------------------------------------*/
 /* extract   ---  a task from a queue                        */
 /*-----------------------------------------------------------*/
-proc extract ( proc i, queue *que ); /* index ("TCBs num. ") and queue desired task */
+proc extract(proc i, queue *que); /* index ("TCBs num. ") and queue desired task */
 
 
 /*-----------------------------------------------------------*/
 /* getfirst   ---  extracts a task at the head of a queue    */
 /*-----------------------------------------------------------*/
-proc getfirst ( queue *que );
+proc getfirst(queue *que);
 
 /*-----------------------------------------------------------*/
 /* firstdline  ---  returns the deadline of the first task   */
 /*-----------------------------------------------------------*/
-long firstdline ( queue *que );
+long firstdline(queue *que);
 
 /*-----------------------------------------------------------*/
 /* empty    ---  returns TRUE if a queue is empty            */
 /*-----------------------------------------------------------*/
-int empty ( queue *que );
+int empty(queue *que);
 
 /*===========================================================*/
 /*                SCHEDULING MECHANISM                       */
@@ -183,19 +176,17 @@ int empty ( queue *que );
 /*-----------------------------------------------------------*/
 /* schedule --- selects the task with the earliest deadline  */
 /*-----------------------------------------------------------*/
-
-void    schedule ( void );
+void schedule(void);
 
 /*---------------------------------------------------------------*/
 /* dispatch --- assigns the cpu to the first ready task          */
 /*---------------------------------------------------------------*/
-void    dispatch ( void );
+void dispatch(void);
 
 /*-----------------------------------------------------------*/
 /* wake_up --- final timer interrupt handling routine        */
 /*-----------------------------------------------------------*/
-
-void   wake_up ( void ); /* timer interrupt handling routine  */
+void wake_up(void); /* timer interrupt handling routine  */
 
 /*===========================================================*/
 /*                    TASK' MANAGEMENT                       */
@@ -204,45 +195,49 @@ void   wake_up ( void ); /* timer interrupt handling routine  */
 /*-----------------------------------------------------------*/
 /* create  --- creates a task and puts it in sleep state     */
 /*-----------------------------------------------------------*/
-proc create (
-char		name[MAXLEN+1],         /* task name */
-proc		(*addr)(),           /* task address */
-int		type,            /* type (HARD, NRT) */
-float		period,/* period, relative dl or pri */
-float wcet );                       /* execution time */
+proc create(
+        char		name[MAXLEN+1],         /* task name */
+        proc		(*addr)(),           /* task address */
+        int		    type,            /* type (HARD, NRT) */
+        float		period,/* period, relative dl or pri */
+        float       wcet             /* execution time */
+        );
 
 /*-----------------------------------------------------------*/
 /* guarantee  --- guarantees the feasibility of a hard task  */
 /*-----------------------------------------------------------*/
-int guarantee ( proc p );
+int guarantee(proc p);
 
 /*-----------------------------------------------------------*/
 /* activate  --- inserts a task in the ready queue           */
 /*-----------------------------------------------------------*/
-int activate ( proc p );
+int activate(proc p);
 
 /*-----------------------------------------------------------*/
 /* sleep  --- suspends itself in a sleep state               */
 /*-----------------------------------------------------------*/
-int     sleep ( void );
+int sleep(void);
 
 /*-----------------------------------------------------------*/
 /* end_cycle  --- inserts a task in the idle queue           */
 /*-----------------------------------------------------------*/
-int      end_cycle ( void );
+int end_cycle(void);
 
 /*-----------------------------------------------------------*/
 /*  ---            Example of periodic task      ---         */
 /*-----------------------------------------------------------*/
-proc cycle();
+proc cycle(void);
+
 /*-----------------------------------------------------------*/
 /* end_process  ---  inserts a task in the idle queue        */
 /*-----------------------------------------------------------*/
-int end_process ( void );
+int end_process(void);
+
 /*-----------------------------------------------------------*/
 /* kill  ---  terminates a task                              */
 /*-----------------------------------------------------------*/
-void kill ( proc p );
+void kill(proc p);
+
 /*===========================================================*/
 /*                        SEMAPHORES                         */
 /*===========================================================*/
@@ -250,19 +245,20 @@ void kill ( proc p );
 /*-----------------------------------------------------------*/
 /* newsem  ---  allocates and initializes a semaphore        */
 /*-----------------------------------------------------------*/
-sem      newsem (int n );
+sem newsem(int n);
 /*-----------------------------------------------------------*/
 /* delsem  ---  allocates and initializes a semaphore        */
 /*-----------------------------------------------------------*/
-void      delsem ( sem s );
+void delsem(sem s);
 /*-----------------------------------------------------------*/
 /* wait  ---  wait for an event                              */
 /*-----------------------------------------------------------*/
-void      wait ( sem s );
+void wait(sem s);
 /*-----------------------------------------------------------*/
 /* signal ---  signals an event                              */
 /*-----------------------------------------------------------*/
-void     signal ( sem s );
+void signal(sem s);
+
 /*===========================================================*/
 /*                TASK' STATUS INQUIRY                       */
 /*===========================================================*/
@@ -270,50 +266,57 @@ void     signal ( sem s );
 /*-----------------------------------------------------------*/
 /* get_state ---  returns the state of a task                */
 /*-----------------------------------------------------------*/
-int      get_state ( proc p );
+int get_state(proc p);
+
 /*-----------------------------------------------------------*/
 /* get_dline ---  returns the deadline of a task             */
 /*-----------------------------------------------------------*/
-long     get_dline ( proc p );
+long get_dline(proc p);
+
 /*-----------------------------------------------------------*/
 /* get_period ---  returns the period of a task              */
 /*-----------------------------------------------------------*/
-float      get_period ( proc p );
-/*===========================================================*/
-/*                  CAB IMPLEMENTATION                       */
-/*===========================================================*/
+float get_period(proc p);
 
+/*===========================================================*/
+/*                          CAB                              */
+/*===========================================================*/
+/*                                                           */
+/*             Usage:                                        */
 /*-----------------------------------------------------------*/
 /*             to insert a message in a CAB                  */
 /*-----------------------------------------------------------*/
-//buf_pointer = reserve (cab_id);
-//< copy message in *buf_pointer >
-//putmes (buf_pointer, cab_id);
-
+//      buf_pointer = reserve (cab_id);
+//       < copy message in *buf_pointer >
+//       putmes (buf_pointer, cab_id);
+//
 /*-----------------------------------------------------------*/
 /*             to get a message from a CAB                   */
 /*-----------------------------------------------------------*/
-//mes_pointer = getmes (cab_id);
-//< use message  >
-//unget (mes_pointer, cab_id);
+//       mes_pointer = getmes (cab_id);
+//       < use message  >
+//       unget (mes_pointer, cab_id);
 
 /*-----------------------------------------------------------*/
 /* reserve  ---  reserves a buffer in a CAB                  */
 /*-----------------------------------------------------------*/
-pointer     reserve (cab c);
+pointer reserve(cab c);
+
 /*-----------------------------------------------------------*/
 /* putmes  ---  puts a message in a CAB                      */
 /*-----------------------------------------------------------*/
-void     putmes(cab c, pointer p);
+void putmes(cab c, pointer p);
 
 /*-----------------------------------------------------------*/
 /* getmes  ---  gets a pointer to the most recent buffer     */
 /*-----------------------------------------------------------*/
-pointer     getmes(cab c);
+pointer getmes(cab c);
 
 /*-----------------------------------------------------------*/
 /* unget --- deallocates a buffer only if it is not accessed */
 /*           and it is not the most recent buffer            */
 /*-----------------------------------------------------------*/
-void     unget(cab c, pointer p);
+void unget(cab c, pointer p);
 
+
+#endif // UDICK_H
