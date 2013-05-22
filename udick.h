@@ -75,7 +75,7 @@ extern float            tick;               /* tick */
 /*---------------------------------------------------------*/
 /*          Task Control Block structure definition        */
 /*---------------------------------------------------------*/
-struct tcb {
+typedef struct tcb {
     char   name[MAXLEN+1];   /* task identifier name        */
     proc   (*addr)();        /* task address                */
     int    type;             /* task type (periodic, etc.)  */
@@ -89,16 +89,16 @@ struct tcb {
     int    *context;         /* pointer to the context      */
     proc   next;             /* pointer to the next tcb     */
     proc   prev;             /* pointer to previous tcb     */
-};
+} tcb_t;
 
 /*-----------------------------------------------------------*/
 /*       Semaphore Control Block structure definition        */
 /*-----------------------------------------------------------*/
-struct scb {
+typedef struct scb {
     int    count;            /* semaphore counter             */
     queue  qsem;             /* semaphore queue               */
     sem    next;             /* pointer to the next semaphore */
-};
+} scb_t;
 
 /*-----------------------------------------------------------*/
 /*   Cyclic Asynchronous Buffer (CAB) structure definition   */

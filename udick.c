@@ -38,8 +38,8 @@ float           tick = 62.0/62500.0;  /* tick */
 /*-----------------------------------------------------------*/
 /*                  Array of TCB and array of SCB            */
 /*-----------------------------------------------------------*/
-struct tcb      vdes[MAXPROC];  /* array of tcb's	     */
-struct scb      vsem[MAXSEM];   /* array of scb's	     */
+tcb_t           vdes[MAXPROC];  /* array of tcb's	     */
+scb_t           vsem[MAXSEM];   /* array of scb's	     */
 
 /*===========================================================*/
 /*                     INITIALIZATION                        */
