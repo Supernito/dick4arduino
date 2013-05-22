@@ -139,13 +139,13 @@ void    schedule ( void )
            /* The smaller P_i is, the higher its priority is.    */
 	   /* Has first task in ready queue earlier 
 	      period as an ongoing task?		         */
-//     if ( firstdline ( ready ) < vdes[pexe].dline ) {
+     if ( firstdline ( ready ) < vdes[pexe].dline ) {
        vdes[pexe].state = READY;
-//     insert ( pexe, &ready );/*... then manage the ongoing 
+     insert ( pexe, &ready );/*... then manage the ongoing 
 			       /*  task in the ready queue ...   */
        dispatch (); /* and make the first task at the ready 
 		   queue as the current                          */
-//     }
+     }
 };
 
 /*---------------------------------------------------------------*/
@@ -153,8 +153,8 @@ void    schedule ( void )
 /*---------------------------------------------------------------*/
 void    dispatch ( void )
 {
-//     pexe = getfirst ( &ready );/* Make task with the earliest */ 
-//     vdes[pexe].state = RUN;    /* deadline of the Ready queue */
+     pexe = getfirst ( &ready );/* Make task with the earliest */ 
+     vdes[pexe].state = EXE;    /* deadline of the Ready queue */
 				  /* as he ongoing task          */
 };
 
