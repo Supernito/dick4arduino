@@ -291,7 +291,30 @@ void dispatch(void)
 /*-----------------------------------------------------------*/
 void abort(int reason)
 {
-    // TODO: Implementation required
+    switch (reason) {
+    case OK:
+        /* No error */
+        return;
+    case TIME_OVERFLOW:
+        Serial.println("Missed deadline");
+        break;
+    case TIME_EXPIRED:
+        Serial.println("Lifetime reached");
+        break;
+    case NO_GUARANTEE:
+        Serial.println("Task not schedulable");
+        break;
+    case NO_TCB:
+        Serial.println("Too may tasks");
+        break;
+    case NO_SEM:
+        Serial.println("Too many semaphores");
+        break;
+    default:
+        Serial.println("Unexpected behaviour");
+    }
+
+    abort();
 }
 
 /*-----------------------------------------------------------*/
