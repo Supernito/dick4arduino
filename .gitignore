@@ -4,6 +4,7 @@
 # Libraries
 *.lib
 *.a
+*.hex
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -15,8 +16,13 @@
 *.exe
 *.out
 *.app
+*.elf
 
 # CodeBlocks for Arduino
 *.cbp
 *.depend
 *.layout
+*.cbTemp
+
+# Miscelaneous
+*.bak
