@@ -9,6 +9,131 @@
 #include "Arduino.h"
 #include "udick.h"
 
+
+/* List of supported platforms */
+#define P_ARDUINO 1
+#define P_SIMULATOR 2
+
+/* Current platform to build for */
+#define PLATFORM P_ARDUINO
+
+/* Pointer to the context of pexe to use in ASM code. */
+Context pxCurrentContext = NULL;
+/*-----------------------------------------------------------*/
+/*                     Assembly Code                         */
+/*-----------------------------------------------------------*/
+#if PLATFORM == P_ARDUINO
+#   define SAVE_CONTEXT()									\
+	asm volatile (	/* Save r0, and then use it to store SREG value */ \
+                    /* we store it now to have the value SREG had before interrupts were removed */ \
+                    "push	r0						\n\t"	\
+					"in		r0, __SREG__			\n\t"	\
+                    /* Clear interrupt bit */               \
+					"cli							\n\t"	\
+                    /* Save SREG into stack */              \
+					"push	r0						\n\t"	\
+                    /* Save the general purpose registers r1-r31 (r0 already saved) */ \
+					"push	r1						\n\t"	\
+                    /* Clear r1 because AVR GCC compiler expects r1 to be always 0 (it is the __zero_reg__) */ \
+					"clr	r1						\n\t"	\
+					"push	r2						\n\t"	\
+					"push	r3						\n\t"	\
+					"push	r4						\n\t"	\
+					"push	r5						\n\t"	\
+					"push	r6						\n\t"	\
+					"push	r7						\n\t"	\
+					"push	r8						\n\t"	\
+					"push	r9						\n\t"	\
+					"push	r10						\n\t"	\
+					"push	r11						\n\t"	\
+					"push	r12						\n\t"	\
+					"push	r13						\n\t"	\
+					"push	r14						\n\t"	\
+					"push	r15						\n\t"	\
+					"push	r16						\n\t"	\
+					"push	r17						\n\t"	\
+					"push	r18						\n\t"	\
+					"push	r19						\n\t"	\
+					"push	r20						\n\t"	\
+					"push	r21						\n\t"	\
+					"push	r22						\n\t"	\
+					"push	r23						\n\t"	\
+					"push	r24						\n\t"	\
+					"push	r25						\n\t"	\
+					"push	r26						\n\t"	\
+					"push	r27						\n\t"	\
+					"push	r28						\n\t"	\
+					"push	r29						\n\t"	\
+					"push	r30						\n\t"	\
+					"push	r31						\n\t"	\
+					/* Load context pointer from dataspace to register x */ \
+					/* x register is r27:r26 */             \
+					"lds	r26, pxCurrentContext		\n\t"	\
+					"lds	r27, pxCurrentContext + 1	\n\t"	\
+					/* Now save Stack pointer SPL (IO Register 0x3d) in x, and increment x */ \
+					"in		r0, __SP_L__			\n\t"	\
+					"st		x+, r0					\n\t"	\
+					/* Now save Stack pointer SPH (IO Register 0x3e) in x, and increment x */ \
+					"in		r0, __SP_H__			\n\t"	\
+					"st		x+, r0					\n\t"	\
+					/* This las operation has the effect of setting pxCurrentContext to the current SP */ \
+				);
+
+#   define LOAD_CONTEXT()								\
+	asm volatile (  /* Load context pointer from dataspace to register x */ \
+					/* x register is r27:r26 */             \
+                    "lds	r26, pxCurrentContext		\n\t"	\
+					"lds	r27, pxCurrentContext + 1	\n\t"	\
+					/* At this point, interrupts are disabled, so we can write to the Stack Pointer */ \
+					/* Load the new context's stack pointer and write it to the SP register */         \
+					"ld		r28, x+					\n\t"	\
+                    "out	__SP_L__, r28			\n\t"	\
+					"ld		r29, x+					\n\t"	\
+					"out	__SP_H__, r29			\n\t"	\
+					/* Restore the general purpose registers r31-r1 */ \
+					"pop	r31						\n\t"	\
+					"pop	r30						\n\t"	\
+					"pop	r29						\n\t"	\
+					"pop	r28						\n\t"	\
+					"pop	r27						\n\t"	\
+					"pop	r26						\n\t"	\
+					"pop	r25						\n\t"	\
+					"pop	r24						\n\t"	\
+					"pop	r23						\n\t"	\
+					"pop	r22						\n\t"	\
+					"pop	r21						\n\t"	\
+					"pop	r20						\n\t"	\
+					"pop	r19						\n\t"	\
+					"pop	r18						\n\t"	\
+					"pop	r17						\n\t"	\
+					"pop	r16						\n\t"	\
+					"pop	r15						\n\t"	\
+					"pop	r14						\n\t"	\
+					"pop	r13						\n\t"	\
+					"pop	r12						\n\t"	\
+					"pop	r11						\n\t"	\
+					"pop	r10						\n\t"	\
+					"pop	r9						\n\t"	\
+					"pop	r8						\n\t"	\
+					"pop	r7						\n\t"	\
+					"pop	r6						\n\t"	\
+					"pop	r5						\n\t"	\
+					"pop	r4						\n\t"	\
+					"pop	r3						\n\t"	\
+					"pop	r2						\n\t"	\
+					"pop	r1						\n\t"	\
+					/* restore register SREG */ \
+					"pop	r0						\n\t"	\
+					"out	__SREG__, r0			\n\t"	\
+					/* restore register r0 */               \
+					"pop	r0						\n\t"	\
+				);
+
+#else
+#   define SAVE_CONTEXT()
+#   define LOAD_CONTEXT()
+#endif
+
 /*-----------------------------------------------------------*/
 /*                      Utils                                */
 /*-----------------------------------------------------------*/
@@ -121,14 +246,14 @@ ISR(TIMER1_COMPA_vect)          // timer compare interrupt service routine
 /*-----------------------------------------------------------*/
 void save_context(void)
 {
-    int* pc;                  /* pointer to context of pexe */
-
-    noInterrupts();// < disable interrupts >
-    // pc = vdes[pexe].context;
-    // pc[0] = < register_0 >;   /* save register 0            */
-    // pc[1] = < register_1 >;   /* save register 1            */
-    // <...>;
-    // pc[n] = < register_n >;   /* save register n            */
+    /* TODO: Interrupts will be disabled in SAVE_CONTEXT.
+        Check if we should disable them here instead.
+        But if we do so, there is no way to know the previous state
+        of SREG. Additionally, we may have to reenable them in
+        load_context() if we disable here. */
+    /*noInterrupts();// < disable interrupts >*/
+    pxCurrentContext = vdes[pexe].context;
+    SAVE_CONTEXT();
 }
 
 /*-----------------------------------------------------------*/
@@ -136,14 +261,12 @@ void save_context(void)
 /*-----------------------------------------------------------*/
 void load_context(void)
 {
-    int* pc;                  /* pointer to context of pexe */
+    pxCurrentContext = vdes[pexe].context;
+    LOAD_CONTEXT();
 
-    pc = vdes[pexe].context;
-    // < register_0 > = pc[0];   /* load register 0         */
-    // < register_1 > = pc[1];   /* load register 1         */
-    // <...>;
-    // < register_n > = pc[n];   /* load register n         */
-    // < instruction such as "return from interrupt" >
+	/* Simulate a function call end as generated by the compiler.  We will now
+	jump to the start of the task the context of which we have just restored. */
+	asm volatile ( "ret" );
 }
 
 /*===========================================================*/
@@ -491,7 +614,7 @@ int end_cycle(void)
         }
         dispatch();
         load_context();
-    interrupts();
+    /* load_context will re-enable interrupts and jump directly into the new dispached task */
 }
 
 /*-----------------------------------------------------------*/

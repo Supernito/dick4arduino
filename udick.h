@@ -75,6 +75,8 @@ extern float            tick;               /* tick */
 /*---------------------------------------------------------*/
 /*          Task Control Block structure definition        */
 /*---------------------------------------------------------*/
+typedef int* Context;
+
 typedef struct tcb {
     char   name[MAXLEN+1];   /* task identifier name        */
     proc   (*addr)();        /* task address                */
@@ -86,7 +88,7 @@ typedef struct tcb {
     int    prt;              /* task priority               */
     int    wcet;             /* wost-case execution time    */
     float  util;             /* task utilization factor     */
-    int    *context;         /* pointer to the context      */
+    Context context;         /* pointer to the context      */
     proc   next;             /* pointer to the next tcb     */
     proc   prev;             /* pointer to previous tcb     */
 } tcb_t;
