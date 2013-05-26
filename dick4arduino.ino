@@ -77,3 +77,59 @@ proc cycle()
         end_cycle();
     }
 }
+
+/*-----------------------------------------------------------*/
+/*  ---            Example of cab usage          ---         */
+/*-----------------------------------------------------------*/
+/**
+ * Some example messages
+ */
+const int eMsg_Hello = 1;
+const int eMsg_GoodBye = 2;
+
+/**
+ * Example of how to insert a message in a CAB. In
+ * this case, the message will be an integer
+ */
+void CAB_insert_message_example()
+{
+
+    cab c;
+    pointer p;
+    char msg[BUFFER_SIZE];
+
+    /* reserve a cab */
+    c = reserve();
+
+    /* clear buffer */
+    memset(msg, 0, sizeof(char)*BUFFER_SIZE);
+
+    /* get a pointer to the desired data */
+    p = (pointer)&eMsg_GoodBye;
+
+    /* copy data into buffer */
+    memcpy(msg, p, sizeof(int));
+
+    /* call putmes to put the message into cab */
+    putmes(c, msg);
+}
+
+/**
+ * Example of how to get a message from a CAB. In
+ * this case, the message will be an integer
+ */
+void CAB_get_message_example()
+{
+    cab c;
+    pointer msg;
+    int decodedMsg;
+
+    /* get the message and a handle to the cab */
+    msg = getmes(&c);
+
+    /* copy the message to the desired memory region */
+    memcpy(&decodedMsg, msg, sizeof(int));
+
+    /* decrement the reference counter of this cab */
+    unget(c);
+}

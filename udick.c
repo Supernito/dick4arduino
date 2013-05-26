@@ -165,17 +165,62 @@ float           tick = 62.0/62500.0;  /* tick */
 /*-----------------------------------------------------------*/
 tcb_t           vdes[MAXPROC];  /* array of tcb's	     */
 scb_t           vsem[MAXSEM];   /* array of scb's	     */
+cab_t           vcabs;          /* CAB structure */
 
 /*===========================================================*/
 /*                     INITIALIZATION                        */
 /*===========================================================*/
 
 /*-----------------------------------------------------------*/
+/* init_TBCs ---  initialize the list of free TCBs	         */
+/*-----------------------------------------------------------*/
+inline void init_TBCs()
+{
+    proc i;
+    for (i = 0; i < MAXPROC - 1; i++) {
+        vdes[i].next = i + 1;
+    }
+    vdes[MAXPROC-1].next = NIL;
+}
+
+/*-----------------------------------------------------------*/
+/* init_semaphores ---  initialize the list of free semaphores */
+/*-----------------------------------------------------------*/
+inline void init_semaphores()
+{
+    sem i;
+    for (i = 0; i < MAXSEM - 1; i++) {
+        vsem[i].next = i + 1;
+    }
+    vsem[MAXSEM-1].next = NIL;
+    ready = idle = zombie = NIL;
+    freetcb = freesem = 0;
+}
+
+/*-----------------------------------------------------------*/
+/* init_CABs ---  initialize the CABs	                     */
+/*-----------------------------------------------------------*/
+inline void init_CABs()
+{
+    cab i;
+
+    cabcb.free = 0;
+    cabcb.mrb = NIL;
+    cabcb.max_buf = BUFFER_MAX;
+    cabcb.dim_buf = BUFFER_SIZE;
+
+    for (i = 0; i < cabcb.max_buf; i++) {
+        mrbs[i].next = i + 1;
+        mrbs[i].use = 0;
+    }
+    mrbs[cabcb.max_buf-1].next = NIL;
+}
+
+/*-----------------------------------------------------------*/
 /* ini_system ---  system initialization	             */
 /*-----------------------------------------------------------*/
 void ini_system(float tick)
 {
-    proc i;
 
     Serial.println("executing 'ini_system'..." );
     delay(1000);
@@ -192,22 +237,20 @@ void ini_system(float tick)
 
     // < initialize the interrupt vector table >
 
-    /* initialize the list of free TCBs and semaphores */
-    for (i = 0; i < MAXPROC - 1; i++) {
-        vdes[i].next = i + 1;
-    }
-    vdes[MAXPROC-1].next = NIL;
+    /* initialize the list of free TCBs */
+    init_TBCs();
 
     Serial.println("Initializing list of free semaphores..." );
     delay(500);
 
     /* initialize the list of free semaphores */
-    for (i = 0; i < MAXSEM - 1; i++) {
-        vsem[i].next = i + 1;
-    }
-    vsem[MAXSEM-1].next = NIL;
-    ready = idle = zombie = NIL;
-    freetcb = freesem = 0;
+    init_semaphores();
+
+    Serial.println("Initializing CABs..." );
+    delay(500);
+
+    /* initialize the CABs */
+    init_CABs();
 
     util_fact = 0;
 
@@ -432,6 +475,9 @@ void abort(int reason)
         break;
     case NO_SEM:
         Serial.println("Too many semaphores");
+        break;
+    case NO_CAB:
+        Serial.println("Too many CABs");
         break;
     default:
         Serial.println("Unexpected behaviour");
@@ -755,45 +801,51 @@ float get_period(proc p)
 /*-----------------------------------------------------------*/
 /* reserve  ---  reserves a buffer in a CAB                  */
 /*-----------------------------------------------------------*/
-pointer reserve(cab c)
+cab reserve()
 {
-    pointer p;
+    cab c;
 
-    noInterrupts(); //< disable cpu interrupts >
-//        p = c.free;                 /* get a free buffer        */
-//        c.free = p.next;            /* update the free list     */
-    interrupts(); //< enable cpu interrupts >
+    noInterrupts();
+        c = cabcb.free;
+        if (c == NIL) {
+            abort(NO_CAB);
+        }
+        cabcb.free = mrbs[c].next;
+    interrupts();
 
-    return p;
+    return c;
 }
 
 /*-----------------------------------------------------------*/
 /* putmes  ---  puts a message in a CAB                      */
 /*-----------------------------------------------------------*/
-void putmes(cab c, pointer p)
+void putmes(cab c, pointer msg)
 {
-    noInterrupts(); //< disable cpu interrupts >
-//    if (c.mrb.use == 0) {           /* if not accessed,     */
-//        c.mrb.next = c.free;       /* deallocates the mrb  */
-//        c.free = c.mrb;
-//    }
-//    c.mrb = p;                      /* update the mrb       */
-    interrupts(); //< enable cpu interrupts >
+    noInterrupts();
+        if (mrbs[cabcb.mrb].use == 0) {
+            mrbs[cabcb.mrb].next = cabcb.free;
+            cabcb.free = c;
+        }
+        cabcb.mrb = c;
+        memcpy(mrbs[c].data, msg, sizeof(char)*BUFFER_SIZE);
+    interrupts();
 }
 
 
 /*-----------------------------------------------------------*/
 /* getmes  ---  gets a pointer to the most recent buffer     */
 /*-----------------------------------------------------------*/
-pointer getmes(cab c)
+pointer getmes(cab* c)
 {
-    pointer p;
-    noInterrupts(); //< disable cpu interrupts >
-//        p = c.mrb;                 /* get the pointer to mrb    */
-//        p.use = p.use + 1;         /* increment the counter     */
-    interrupts(); //< enable cpu interrupts >
+    pointer msg;
 
-    return p;
+    noInterrupts();
+        *c = cabcb.mrb;
+        mrbs[*c].use++;
+        msg = mrbs[*c].data;
+    interrupts();
+
+    return msg;
 }
 
 
@@ -801,13 +853,13 @@ pointer getmes(cab c)
 /* unget --- deallocates a buffer only if it is not accessed */
 /*           and it is not the most recent buffer            */
 /*-----------------------------------------------------------*/
-void unget(cab c, pointer p)
+void unget(cab c)
 {
-    noInterrupts(); //< disable cpu interrupts >
-//        p.use = p.use - 1;		/*decrement the counter      */
-//        if ((p.use == 0) && (p ! = c.mrb)) {
-//            p.next = c.free;
-//            c.free = p;
-//        }
-    interrupts(); //< enable cpu interrupts >
+    noInterrupts();
+        mrbs[c].use--;
+        if (mrbs[c].use == 0 && c != cabcb.mrb) {
+            mrbs[c].next = cabcb.free;
+            cabcb.free = c;
+        }
+    interrupts();
 }

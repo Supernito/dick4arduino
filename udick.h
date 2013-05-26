@@ -55,6 +55,7 @@ typedef  char*  pointer;  /* memory pointer 	                       */
 #define NO_GUARANTEE   -3   /* task not schedulable          */
 #define NO_TCB         -4   /* too may tasks                 */
 #define NO_SEM         -5   /* too many semaphores           */
+#define NO_CAB         -6   /* too many CABs                 */
 
 /*-----------------------------------------------------------*/
 /*                  Test PINs definition                     */
@@ -105,7 +106,34 @@ typedef struct scb {
 /*-----------------------------------------------------------*/
 /*   Cyclic Asynchronous Buffer (CAB) structure definition   */
 /*-----------------------------------------------------------*/
-/* TODO: Implement CAB structure */
+#define BUFFER_SIZE 32
+#define BUFFER_MAX 16
+
+typedef char buffer;
+
+typedef struct mrb {
+    cab next;                   /* An index to the next MRB in the list */
+    cab use;                    /* A counter that stores the current number of tasks */
+                                /* accessing that buffer */
+    buffer data[BUFFER_SIZE];   /* Memory area for storing the message */
+} mrb_t;
+
+typedef struct cab_cb {
+    cab free;                   /* An index to maintain a list of free buffers */
+    cab mrb;                    /* An index to the most recent buffer */
+    int max_buf;                /* The maximum number of buffers */
+    long dim_buf;               /* The dimension of the buffers */
+} cabcb_t;
+
+typedef struct cab_t {
+    cabcb_t cab_cbs;
+    mrb_t vmrbs[BUFFER_MAX];
+} cab_t;
+
+extern cab_t vcabs;
+
+#define cabcb vcabs.cab_cbs
+#define mrbs vcabs.vmrbs
 
 
 /*===========================================================*/
@@ -302,23 +330,23 @@ float get_period(proc p);
 /*-----------------------------------------------------------*/
 /* reserve  ---  reserves a buffer in a CAB                  */
 /*-----------------------------------------------------------*/
-pointer reserve(cab c);
+cab reserve();
 
 /*-----------------------------------------------------------*/
 /* putmes  ---  puts a message in a CAB                      */
 /*-----------------------------------------------------------*/
-void putmes(cab c, pointer p);
+void putmes(cab c, pointer msg);
 
 /*-----------------------------------------------------------*/
 /* getmes  ---  gets a pointer to the most recent buffer     */
 /*-----------------------------------------------------------*/
-pointer getmes(cab c);
+pointer getmes(cab* c);
 
 /*-----------------------------------------------------------*/
 /* unget --- deallocates a buffer only if it is not accessed */
 /*           and it is not the most recent buffer            */
 /*-----------------------------------------------------------*/
-void unget(cab c, pointer p);
+void unget(cab c);
 
 
 #endif // UDICK_H
