@@ -165,7 +165,10 @@ float           tick = 62.0/62500.0;  /* tick */
 /*-----------------------------------------------------------*/
 tcb_t           vdes[MAXPROC];  /* array of tcb's	     */
 scb_t           vsem[MAXSEM];   /* array of scb's	     */
-cab_t           vcabs;          /* CAB structure */
+cab_t           cabs;          /* CAB structure */
+
+#define cabcb cabs.cab_cbs
+#define mrbs cabs.vmrbs
 
 /*===========================================================*/
 /*                     INITIALIZATION                        */
@@ -801,15 +804,21 @@ float get_period(proc p)
 /*-----------------------------------------------------------*/
 /* reserve  ---  reserves a buffer in a CAB                  */
 /*-----------------------------------------------------------*/
+/*                                                           */
+/* @return  returns the index of the first free cab          */
+/*-----------------------------------------------------------*/
 cab reserve()
 {
     cab c;
 
     noInterrupts();
+        /* get the first CAB on the free list */
         c = cabcb.free;
+        /* if there are no CABs left, trigger an error */
         if (c == NIL) {
             abort(NO_CAB);
         }
+        /* update the list of free CABs */
         cabcb.free = mrbs[c].next;
     interrupts();
 
@@ -819,14 +828,22 @@ cab reserve()
 /*-----------------------------------------------------------*/
 /* putmes  ---  puts a message in a CAB                      */
 /*-----------------------------------------------------------*/
+/*                                                           */
+/* @param c     CAB index to put the message into            */
+/* @param msg   the message to be copied                     */
+/* @return      returns the index of the first free cab      */
+/*-----------------------------------------------------------*/
 void putmes(cab c, pointer msg)
 {
     noInterrupts();
+        /* if the most recent buffer is not being used, deallocate it */
         if (mrbs[cabcb.mrb].use == 0) {
             mrbs[cabcb.mrb].next = cabcb.free;
             cabcb.free = c;
         }
+        /* the most recent buffer is now c */
         cabcb.mrb = c;
+        /* copy the msg into c data space */
         memcpy(mrbs[c].data, msg, sizeof(char)*BUFFER_SIZE);
     interrupts();
 }
@@ -835,13 +852,21 @@ void putmes(cab c, pointer msg)
 /*-----------------------------------------------------------*/
 /* getmes  ---  gets a pointer to the most recent buffer     */
 /*-----------------------------------------------------------*/
+/*                                                           */
+/* @param c     will contain a handle to the most recent     */
+/*              buffer                                       */
+/* @return      returns a pointer to the message memory area */
+/*-----------------------------------------------------------*/
 pointer getmes(cab* c)
 {
     pointer msg;
 
     noInterrupts();
+        /* set c to the most recent buffer index */
         *c = cabcb.mrb;
+        /* mrb is being used by one more entity */
         mrbs[*c].use++;
+        /* point to the message memory area */
         msg = mrbs[*c].data;
     interrupts();
 
@@ -853,10 +878,16 @@ pointer getmes(cab* c)
 /* unget --- deallocates a buffer only if it is not accessed */
 /*           and it is not the most recent buffer            */
 /*-----------------------------------------------------------*/
+/*                                                           */
+/* @param c     the idex to the CAB to deallocate            */
+/*-----------------------------------------------------------*/
 void unget(cab c)
 {
     noInterrupts();
+        /* reduce the reference counter */
         mrbs[c].use--;
+        /* deallocate if no one is using it and it is not   */
+        /* the most recent buffer                           */
         if (mrbs[c].use == 0 && c != cabcb.mrb) {
             mrbs[c].next = cabcb.free;
             cabcb.free = c;

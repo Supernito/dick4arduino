@@ -130,11 +130,6 @@ typedef struct cab_t {
     mrb_t vmrbs[BUFFER_MAX];
 } cab_t;
 
-extern cab_t vcabs;
-
-#define cabcb vcabs.cab_cbs
-#define mrbs vcabs.vmrbs
-
 
 /*===========================================================*/
 /*                     INITIALIZATION                        */
