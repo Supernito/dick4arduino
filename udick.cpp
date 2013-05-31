@@ -187,9 +187,9 @@ inline void init_TBCs()
 }
 
 /*-----------------------------------------------------------*/
-/* init_semaphores ---  initialize the list of free semaphores */
+/* init_SCBs ---  initialize the list of free semaphores */
 /*-----------------------------------------------------------*/
-inline void init_semaphores()
+inline void init_SCBs()
 {
     sem i;
     for (i = 0; i < MAXSEM - 1; i++) {
@@ -247,7 +247,7 @@ void ini_system(float tick)
     delay(500);
 
     /* initialize the list of free semaphores */
-    init_semaphores();
+    init_SCBs();
 
     Serial.println("Initializing CABs..." );
     delay(500);
@@ -499,34 +499,34 @@ void wake_up( void ) /* timer interrupt handling routine  */
     int count = 0;
 
     save_context();
-        sys_clock++;
-        if (sys_clock >= LIFETIME) {
-            abort(TIME_EXPIRED);
+    sys_clock++;
+    if (sys_clock >= LIFETIME) {
+        abort(TIME_EXPIRED);
+    }
+    if (vdes[pexe].type == HARD) {    /* ... must check other*/
+                                        /*    tasks in queue ? */
+        if (sys_clock > vdes[pexe].dline) {
+            abort( TIME_OVERFLOW );
         }
-        if (vdes[pexe].type == HARD) {    /* ... must check other*/
-                                            /*    tasks in queue ? */
-            if (sys_clock > vdes[pexe].dline) {
-                abort( TIME_OVERFLOW );
-            }
-        }
-        while (!empty(&zombie) && (firstdline(&zombie) <= sys_clock)) {
-            p = getfirst(&zombie);
-            util_fact = util_fact - vdes[p].util;
-            vdes[p].state = FREE;
-            insert(p, &freetcb);
-        }
+    }
+    while (!empty(&zombie) && (firstdline(&zombie) <= sys_clock)) {
+        p = getfirst(&zombie);
+        util_fact = util_fact - vdes[p].util;
+        vdes[p].state = FREE;
+        insert(p, &freetcb);
+    }
 
-        while (!empty(&idle) && (firstdline(&idle) <= sys_clock)) {
-            p = getfirst(&idle);
-            vdes[p].dline += (long)vdes[p].period;
-            vdes[p].state = READY;
-            insert(p, &ready);
-            count++;
-        }
+    while (!empty(&idle) && (firstdline(&idle) <= sys_clock)) {
+        p = getfirst(&idle);
+        vdes[p].dline += (long)vdes[p].period;
+        vdes[p].state = READY;
+        insert(p, &ready);
+        count++;
+    }
 
-        if (count > 0) { 	/* Whenever the ready queue changes, */
-            schedule();    /* scheduling should be performed */
-        }
+    if (count > 0) { 	/* Whenever the ready queue changes, */
+        schedule();    /* scheduling should be performed */
+    }
     load_context();
 }
 
@@ -550,27 +550,27 @@ proc create (
     proc p;
 
     noInterrupts(); //< disable cpu interrupts >
-        p = getfirst(&freetcb);
-        if (p == NIL) {
-            abort(NO_TCB);
+    p = getfirst(&freetcb);
+    if (p == NIL) {
+        abort(NO_TCB);
+    }
+    // Copy task name
+    strcpy(vdes[p].name, name);
+    vdes[p].addr = addr;
+    vdes[p].type = type;
+    vdes[p].state = SLEEP;
+    vdes[p].period = (int)( period / time_unit );
+    vdes[p].wcet = (int)( wcet / time_unit );
+    vdes[p].util = wcet / period;
+    vdes[p].prt = (int)period;
+    vdes[p].dline =  MAX_LONG -PRT_LEV + (long)period;
+           /* ^ dline is set by supposing this task is a NRT */
+           /* The value is updated if this task is not a NRT */
+    if (vdes[p].type == HARD) {
+        if (!guarantee(p)) {
+            return NO_GUARANTEE;
         }
-        // Copy task name
-        strcpy(vdes[p].name, name);
-        vdes[p].addr = addr;
-        vdes[p].type = type;
-        vdes[p].state = SLEEP;
-        vdes[p].period = (int)( period / time_unit );
-        vdes[p].wcet = (int)( wcet / time_unit );
-        vdes[p].util = wcet / period;
-        vdes[p].prt = (int)period;
-        vdes[p].dline =  MAX_LONG -PRT_LEV + (long)period;
-               /* ^ dline is set by supposing this task is a NRT */
-               /* The value is updated if this task is not a NRT */
-        if (vdes[p].type == HARD) {
-            if (!guarantee(p)) {
-                return NO_GUARANTEE;
-            }
-        }
+    }
 //      < initialize process stack >
     interrupts(); //< enable cpu interrupts >
 
@@ -589,9 +589,7 @@ proc create (
         util_fact = util_fact - vdes[p].util;
         return FALSE;
     }
-    else {
-        return TRUE;
-    }
+    return TRUE;
 }
 
 
@@ -601,13 +599,13 @@ proc create (
  int activate(proc p)
  {
     save_context ();
-        if (vdes[p].type == HARD) {     /* update the deadline */
-            vdes[p].dline = sys_clock + (long)vdes[p].period;
-        }
-                            /* period == relative deadline */
-        vdes[p].state = READY;
-        insert(p, &ready);
-        schedule();   /* Whenever the ready queue changes, ... */
+    if (vdes[p].type == HARD) {     /* update the deadline */
+        vdes[p].dline = sys_clock + (long)vdes[p].period;
+    }
+                        /* period == relative deadline */
+    vdes[p].state = READY;
+    insert(p, &ready);
+    schedule();   /* Whenever the ready queue changes, ... */
     load_context();
  }
 
@@ -617,8 +615,8 @@ proc create (
 int sleep(void)
 {
     save_context();
-        vdes[pexe].state = SLEEP;
-        dispatch(); /* Extracting the 1st task from the ready queue*/
+    vdes[pexe].state = SLEEP;
+    dispatch(); /* Extracting the 1st task from the ready queue*/
                      /* as the next running task */
     load_context(); /* The next running task is loaded on CPU */
 }
@@ -631,20 +629,20 @@ int end_cycle(void)
     long dl;
 
     save_context();
-        dl = vdes[pexe].dline;
-        if (sys_clock < dl) {
-                         /* Before the start of the next period, */
-            vdes[pexe].state = IDLE;        /* going into idle state */
-            insert(pexe, &idle);
-        }
-        else { /* At the same time as the start of the next period,*/
-               /* activating immediately */
-            dl = dl + (long)vdes[pexe].period;
-            vdes[pexe].dline = dl;
-            vdes[pexe].state = READY;
-            insert(pexe, &ready);
-        }
-        dispatch();
+    dl = vdes[pexe].dline;
+    if (sys_clock < dl) {
+                     /* Before the start of the next period, */
+        vdes[pexe].state = IDLE;        /* going into idle state */
+        insert(pexe, &idle);
+    }
+    else { /* At the same time as the start of the next period,*/
+           /* activating immediately */
+        dl = dl + (long)vdes[pexe].period;
+        vdes[pexe].dline = dl;
+        vdes[pexe].state = READY;
+        insert(pexe, &ready);
+    }
+    dispatch();
     load_context();
 }
 
@@ -654,15 +652,15 @@ int end_cycle(void)
  int end_process(void)
  {
     noInterrupts(); //< disable cpu interrupts >
-        if (vdes[pexe].type == HARD) {
-            insert(pexe, &zombie);
-        }
-        else {
-            vdes[pexe].state = FREE;
-            insert(pexe, &freetcb);
-        }
-        dispatch();
-        load_context();
+    if (vdes[pexe].type == HARD) {
+        insert(pexe, &zombie);
+    }
+    else {
+        vdes[pexe].state = FREE;
+        insert(pexe, &freetcb);
+    }
+    dispatch();
+    load_context();
     /* load_context will re-enable interrupts and jump directly into the new dispached task */
 }
 
@@ -672,23 +670,23 @@ int end_cycle(void)
 void kill( proc p )
  {
     noInterrupts(); //< disable cpu interrupts >
-        if (pexe == p) {
-            end_process();
-            return;
-        }
-        if (vdes[p].state == READY) {
-            extract(p, &ready);
-        }
-        if (vdes[p].state == IDLE) {
-            extract(p, &idle);
-        }
-        if (vdes[p].type == HARD) {
-            insert(p, &zombie);
-        }
-        else {
-            vdes[pexe].state = FREE;
-            insert(pexe, &freetcb);
-        }
+    if (pexe == p) {
+        end_process();
+        return;
+    }
+    if (vdes[p].state == READY) {
+        extract(p, &ready);
+    }
+    if (vdes[p].state == IDLE) {
+        extract(p, &idle);
+    }
+    if (vdes[p].type == HARD) {
+        insert(p, &zombie);
+    }
+    else {
+        vdes[pexe].state = FREE;
+        insert(pexe, &freetcb);
+    }
     interrupts(); //< enable cpu interrupts >
 }
 
@@ -705,13 +703,13 @@ sem newsem(int n)
     sem s;
 
     noInterrupts(); //< disable cpu interrupts >
-        s = freesem;              /* first free semaphore index   */
-        if (s == NIL) {
-            abort(NO_SEM);
-        }
-        freesem = vsem[s].next;   /* update the freesem list      */
-        vsem[s].count = n;        /* initialize counter           */
-        vsem[s].qsem = NIL;       /* initialize sem.queue         */
+    s = freesem;              /* first free semaphore index   */
+    if (s == NIL) {
+        abort(NO_SEM);
+    }
+    freesem = vsem[s].next;   /* update the freesem list      */
+    vsem[s].count = n;        /* initialize counter           */
+    vsem[s].qsem = NIL;       /* initialize sem.queue         */
                                   /* (for wait queue)             */
     interrupts(); //< enable cpu interrupts >
 
@@ -724,9 +722,10 @@ sem newsem(int n)
 void delsem(sem s)
 {
     noInterrupts(); //< disable cpu interrupts >
-        vsem[s].next = freesem;        /* inserts s at the head */
-        freesem = s;                   /* of the freesem list   */
+    vsem[s].next = freesem;        /* inserts s at the head */
+    freesem = s;                   /* of the freesem list   */
     interrupts(); //< enable cpu interrupts >
+    return s;
 }
 
 /*-----------------------------------------------------------*/
@@ -735,17 +734,17 @@ void delsem(sem s)
 void wait(sem s)
 {
     noInterrupts(); //< disable cpu interrupts >
-        if (vsem[s].count > 0) {       	/* When a resource remains, */
-            vsem[s].count--;          	    /* a resource is given      */
-        }
-        else {                      	    /* When resources are exhausted,*/
-            save_context();
-                vdes[pexe].state = WAIT;      /* the task goes to wait state */
-                insert(pexe, &vsem[s].qsem); /* inserted to the wait queue */
-                dispatch();/* Extracting the 1st task from the ready queue */
-                            /*  as the next running task */
-            load_context();  /* The next running task is loaded on CPU */
-        }
+    if (vsem[s].count > 0) {       	/* When a resource remains, */
+        vsem[s].count--;          	    /* a resource is given      */
+    }
+    else {                      	    /* When resources are exhausted,*/
+        save_context();
+        vdes[pexe].state = WAIT;      /* the task goes to wait state */
+        insert(pexe, &vsem[s].qsem); /* inserted to the wait queue */
+        dispatch();/* Extracting the 1st task from the ready queue */
+                        /*  as the next running task */
+        load_context();  /* The next running task is loaded on CPU */
+    }
     interrupts(); //< enable cpu interrupts >
 }
 
@@ -757,18 +756,18 @@ void wait(sem s)
     proc p;
 
     noInterrupts(); //< disable cpu interrupts >
-        if (!empty(&vsem[s].qsem)) { /* When there is a task that
-                                  /* is waiting for the semaphore */
+    if (!empty(&vsem[s].qsem)) { /* When there is a task that
+                              /* is waiting for the semaphore */
         p = getfirst(&vsem[s].qsem);
-            vdes[p].state = READY;
-            insert(p, &ready);
-            save_context();
-                schedule();
-            load_context();
-        }
-        else {                  /* When there is not a task waiting */
-            vsem[s].count++;    /* returning the resource           */
-        }
+        vdes[p].state = READY;
+        insert(p, &ready);
+        save_context();
+        schedule();
+        load_context();
+    }
+    else {                  /* When there is not a task waiting */
+        vsem[s].count++;    /* returning the resource           */
+    }
     interrupts(); //< enable cpu interrupts >
 }
 
@@ -812,14 +811,14 @@ cab reserve()
     cab c;
 
     noInterrupts();
-        /* get the first CAB on the free list */
-        c = cabcb.free;
-        /* if there are no CABs left, trigger an error */
-        if (c == NIL) {
-            abort(NO_CAB);
-        }
-        /* update the list of free CABs */
-        cabcb.free = mrbs[c].next;
+    /* get the first CAB on the free list */
+    c = cabcb.free;
+    /* if there are no CABs left, trigger an error */
+    if (c == NIL) {
+        abort(NO_CAB);
+    }
+    /* update the list of free CABs */
+    cabcb.free = mrbs[c].next;
     interrupts();
 
     return c;
@@ -836,15 +835,15 @@ cab reserve()
 void putmes(cab c, pointer msg)
 {
     noInterrupts();
-        /* if the most recent buffer is not being used, deallocate it */
-        if (mrbs[cabcb.mrb].use == 0) {
-            mrbs[cabcb.mrb].next = cabcb.free;
-            cabcb.free = c;
-        }
-        /* the most recent buffer is now c */
-        cabcb.mrb = c;
-        /* copy the msg into c data space */
-        memcpy(mrbs[c].data, msg, sizeof(char)*BUFFER_SIZE);
+    /* if the most recent buffer is not being used, deallocate it */
+    if (mrbs[cabcb.mrb].use == 0) {
+        mrbs[cabcb.mrb].next = cabcb.free;
+        cabcb.free = c;
+    }
+    /* the most recent buffer is now c */
+    cabcb.mrb = c;
+    /* copy the msg into c data space */
+    memcpy(mrbs[c].data, msg, sizeof(char)*BUFFER_SIZE);
     interrupts();
 }
 
@@ -862,12 +861,12 @@ pointer getmes(cab* c)
     pointer msg;
 
     noInterrupts();
-        /* set c to the most recent buffer index */
-        *c = cabcb.mrb;
-        /* mrb is being used by one more entity */
-        mrbs[*c].use++;
-        /* point to the message memory area */
-        msg = mrbs[*c].data;
+    /* set c to the most recent buffer index */
+    *c = cabcb.mrb;
+    /* mrb is being used by one more entity */
+    mrbs[*c].use++;
+    /* point to the message memory area */
+    msg = mrbs[*c].data;
     interrupts();
 
     return msg;
@@ -884,13 +883,13 @@ pointer getmes(cab* c)
 void unget(cab c)
 {
     noInterrupts();
-        /* reduce the reference counter */
-        mrbs[c].use--;
-        /* deallocate if no one is using it and it is not   */
-        /* the most recent buffer                           */
-        if (mrbs[c].use == 0 && c != cabcb.mrb) {
-            mrbs[c].next = cabcb.free;
-            cabcb.free = c;
-        }
+    /* reduce the reference counter */
+    mrbs[c].use--;
+    /* deallocate if no one is using it and it is not   */
+    /* the most recent buffer                           */
+    if (mrbs[c].use == 0 && c != cabcb.mrb) {
+        mrbs[c].next = cabcb.free;
+        cabcb.free = c;
+    }
     interrupts();
 }
