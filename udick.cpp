@@ -725,7 +725,7 @@ void delsem(sem s)
     vsem[s].next = freesem;        /* inserts s at the head */
     freesem = s;                   /* of the freesem list   */
     interrupts(); //< enable cpu interrupts >
-    return s;
+    //return s;
 }
 
 /*-----------------------------------------------------------*/

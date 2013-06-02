@@ -13,7 +13,7 @@
 /*-----------------------------------------------------------*/
 /*  Timer, serial comms. and test PINs initialization        */
 /*-----------------------------------------------------------*/
-void setup() {
+/*void setup() {
     // initialize serial communications at 9600 bps:
     Serial.begin(9600);
 
@@ -37,12 +37,12 @@ void setup() {
     interrupts();            // enable all interrupts
 
     ini_system(tick);
-}
+}*/
 
 /*-----------------------------------------------------------*/
 /*                             Main                          */
 /*-----------------------------------------------------------*/
-void loop()
+/*void loop()
 {
     // our program here...
     digitalWrite(ledPin13, 1);   // toggle LED pin 13
@@ -65,6 +65,36 @@ void loop()
 
     digitalWrite(ledPin13, 0);
     delay(500);
+}*/
+
+void setup(){
+  Serial.begin(9600);
+}
+
+
+void loop(){
+    int val = analogRead(analogPin0);
+    float slice = 256.0;
+    float level = val/slice;
+    if (level >= 0 && level<=1){
+        digitalWrite(ledPin11, 0);
+        digitalWrite(ledPin12, 0);
+        digitalWrite(ledPin13, 0);
+    }else if(level > 1 && level<=2){
+        digitalWrite(ledPin11, 1);
+        digitalWrite(ledPin12, 0);
+        digitalWrite(ledPin13, 0);
+    }else if(level > 2 && level<=3){
+        digitalWrite(ledPin11, 1);
+        digitalWrite(ledPin12, 1);
+        digitalWrite(ledPin13, 0);
+    }else if(level > 3){
+        digitalWrite(ledPin11, 1);
+        digitalWrite(ledPin12, 1);
+        digitalWrite(ledPin13, 1);
+    }
+    Serial.println(val);
+    delay(100);
 }
 
 /*-----------------------------------------------------------*/
@@ -132,4 +162,9 @@ void CAB_get_message_example()
 
     /* decrement the reference counter of this cab */
     unget(c);
+}
+
+int read_potentiometer(int pin)
+{
+  return analogRead(pin); 
 }

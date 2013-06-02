@@ -60,8 +60,10 @@ typedef  char*  pointer;  /* memory pointer 	                       */
 /*-----------------------------------------------------------*/
 /*                  Test PINs definition                     */
 /*-----------------------------------------------------------*/
+#define ledPin11 11
 #define ledPin12 12
 #define ledPin13 13
+#define analogPin0 0
 
 /*----------------------------------------------------------------------*/
 /*                      Time management                                 */
@@ -342,6 +344,5 @@ pointer getmes(cab* c);
 /*           and it is not the most recent buffer            */
 /*-----------------------------------------------------------*/
 void unget(cab c);
-
 
 #endif // UDICK_H
