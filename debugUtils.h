@@ -12,3 +12,4 @@
 /* in_state  ---  Shows the processes for a given state      */
 /*-----------------------------------------------------------*/
 void in_state(tcb_t *vdes, int state);
+void tcb_status(tcb_t *p);
