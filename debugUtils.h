@@ -13,3 +13,5 @@
 /*-----------------------------------------------------------*/
 void in_state(tcb_t *vdes, int state);
 void tcb_status(tcb_t *p);
+void mrb_status(mrb_t *pr);
+void cabcb_status(cabcb_t *pr);

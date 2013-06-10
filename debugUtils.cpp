@@ -40,3 +40,26 @@ void tcb_status(tcb_t *pr)
     Serial.println("Next tcb -> " + p.next);
     Serial.println("Previous tcb -> " + p.prev);
 }
+
+/*-----------------------------------------------------------*/
+/* mrb_status  ---  Shows data of MRB      */
+/*-----------------------------------------------------------*/
+void mrb_status(mrb_t *pr)
+{
+    mrb_t p = *pr;
+    Serial.println("Next -> " + p.next);
+    Serial.println("Use -> " + p.use);
+}
+
+
+/*-----------------------------------------------------------*/
+/* cabcb_status  ---  Shows data of CAB      */
+/*-----------------------------------------------------------*/
+void cabcb_status(cabcb_t *pr)
+{
+    cabcb_t p = *pr;
+    Serial.println("Free -> " + p.free);
+    Serial.println("MRB -> " + p.mrb);
+    Serial.println("Max buffer -> " + p.max_buf);
+    Serial.println("Buffer dim -> " + p.dim_buf);
+}
