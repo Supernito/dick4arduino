@@ -9,7 +9,6 @@
 #include "Arduino.h"
 #include "udick.h"
 
-
 /* List of supported platforms */
 #define P_ARDUINO 1
 #define P_SIMULATOR 2

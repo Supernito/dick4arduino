@@ -63,3 +63,23 @@ void cabcb_status(cabcb_t *pr)
     Serial.println("Max buffer -> " + p.max_buf);
     Serial.println("Buffer dim -> " + p.dim_buf);
 }
+
+/*-----------------------------------------------------------*/
+/* scb_status  ---  Shows data of one SCB      */
+/*-----------------------------------------------------------*/
+void scb_status(scb_t *pr)
+{
+    scb_t p = *pr;
+    Serial.println("Count -> " + p.count);
+    Serial.println("Next -> " + p.next);
+    Serial.println("Queue -> " + p.qsem);
+}
+
+/*-----------------------------------------------------------*/
+/* cab_t_status  ---  Shows data of one CAB_T      */
+/*-----------------------------------------------------------*/
+void cabt_status(cab_t *pr)
+{
+    cab_t p = *pr;
+    cabcb_status(&p.cab_cbs);
+}
