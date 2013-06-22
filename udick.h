@@ -85,7 +85,7 @@ typedef struct tcb {
     proc   (*addr)();        /* task address                */
     int    type;             /* task type (periodic, etc.)  */
     int    state;            /* task state                  */
-    long   dline;            /* absolute deadline           */
+    unsigned long   dline;            /* absolute deadline           */
     int    period;           /* period / relative deadline, */
     /* or priority of NRT          */
     int    prt;              /* task priority               */
@@ -189,7 +189,7 @@ proc getfirst(queue *que);
 /*-----------------------------------------------------------*/
 /* firstdline  ---  returns the deadline of the first task   */
 /*-----------------------------------------------------------*/
-long firstdline(queue *que);
+unsigned long firstdline(queue *que);
 
 /*-----------------------------------------------------------*/
 /* empty    ---  returns TRUE if a queue is empty            */
@@ -238,27 +238,27 @@ int guarantee(proc p);
 /*-----------------------------------------------------------*/
 /* activate  --- inserts a task in the ready queue           */
 /*-----------------------------------------------------------*/
-int activate(proc p);
+void activate(proc p);
 
 /*-----------------------------------------------------------*/
 /* sleep  --- suspends itself in a sleep state               */
 /*-----------------------------------------------------------*/
-int sleep(void);
+void sleep(void);
 
 /*-----------------------------------------------------------*/
 /* end_cycle  --- inserts a task in the idle queue           */
 /*-----------------------------------------------------------*/
-int end_cycle(void);
+void end_cycle(void);
 
 /*-----------------------------------------------------------*/
 /*  ---            Example of periodic task      ---         */
 /*-----------------------------------------------------------*/
-proc cycle(void);
+//proc cycle(void);
 
 /*-----------------------------------------------------------*/
 /* end_process  ---  inserts a task in the idle queue        */
 /*-----------------------------------------------------------*/
-int end_process(void);
+void end_process(void);
 
 /*-----------------------------------------------------------*/
 /* kill  ---  terminates a task                              */

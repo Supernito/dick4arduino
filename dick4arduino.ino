@@ -11,80 +11,57 @@
 #include "udick.h"
 #define timeTick 62500
 
-/*void setup() {
-    Serial.println("System's setup..." );
+//TAreas Periodicas
+#define T1 20.0
+#define WCET1 1.1
 
-    // < enable the timer to interrupt every time_unit >
-    Serial.println("Setting up timer..." );
+int t1;
+proc cycle();
 
-    // initialize timer1
-    
-        TCCR1A = 0;
-        TCCR1B = 0;
-        TCNT1  = 0;
-
-        OCR1A = 62;              // compare match register 16MHz (16E6/256=62500)  62500/62= 1000 Hz, Tick=1ms
-        TCCR1B |= (1 << WGM12);  // CTC mode
-        TCCR1B |= (1 << CS12);   // 256 prescaler
-        TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
-    
-
-    ini_system(tick);
-}*/
-/*void loop()
-{
-    // our program here...
-    digitalWrite(ledPin13, 1);   // toggle LED pin 13
-
-    system_time = get_time();
-    Serial.print("System time = ");
-    Serial.print(system_time);
-
-    Serial.print("\t Time unit = ");
-    Serial.print("   sys_clock = ");
-    Serial.println(sys_clock, 6);
-
-    interval = sys_clock - last_sys_clock;
-    last_sys_clock = sys_clock;
-    Serial.print("\t Interval = ");
-    Serial.print(interval, 6);
-    Serial.print("\t ");
-    Serial.println(interval * tick, 6);
-    delay(500);
-
-    digitalWrite(ledPin13, 0);
-    delay(500);
-}*/
 /*-----------------------------------------------------------*/
 /*  Timer, serial comms. and test PINs initialization        */
 /*-----------------------------------------------------------*/
 void setup(){
-  // initialize serial communications at 9600 bps:
-  Serial.begin(9600);
-  Serial.println("Initializing the system...");
-//  delay(1000);
-  Serial.println(timeTick);
-  //noInterrupts();          // disable all interrupts
-  ini_system(timeTick);
-//  interrupts();            // enable all interrupts
-  
-  //Serial.println("System initialized.");
-  //delay(500);
   pinMode(ledPin11, OUTPUT);
   pinMode(ledPin12, OUTPUT);
   pinMode(ledPin13, OUTPUT);
+  digitalWrite(ledPin13, HIGH);
+  // initialize serial communications at 9600 bps:
+  Serial.begin(9600);
   
+  Serial.println("Initializing the system...");
+  noInterrupts();          // disable all interrupts
+  ini_system(timeTick);
+  interrupts();            // enable all interrupts
+  Serial.println("System initialized.");
+
+  delay(300);
+  
+  Serial.println("Creada la tarea");
+  delay(300);
+  char* ciclo = "ciclo       ";
+  t1= create(ciclo, cycle, HARD, T1, WCET1);
+  Serial.println("Activar la tarea");
+  delay(300);
+//  Serial.println(pexe);
+    activate(t1);
+//  delay(1000);
+//  Serial.println("cosa");
+//  Serial.println("hola");
+//  abort();
+  digitalWrite(ledPin13, LOW);
 }
 
 /*-----------------------------------------------------------*/
 /*                             Main                          */
 /*-----------------------------------------------------------*/
 void loop(){
+  
     int val = analogRead(analogPin0);
     float slice = 256.0;
     float level = val/slice;
-    //Serial.print("El valor de level es:");
-    //Serial.println(level);
+    Serial.print("El valor de level es:");
+    Serial.println(level);
     if (level >= 0 && level<=1){
         digitalWrite(ledPin11, 0);
         digitalWrite(ledPin12, 0);
@@ -116,11 +93,15 @@ void loop(){
 /*-----------------------------------------------------------*/
 proc cycle()
 {
-    while (TRUE) {
+//    while (TRUE) {
       Serial.println("Estamos en la tarea periodica.");
+      digitalWrite(ledPin13, 1);
+      delay(1000);
+      digitalWrite(ledPin13, 0);
         /* < periodic code > */
         end_cycle();
-    }
+//    }
+    return t1;
 }
 
 /*-----------------------------------------------------------*/

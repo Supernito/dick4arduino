@@ -22,61 +22,51 @@ Context pxCurrentContext = NULL;
 /*                     Assembly Code                         */
 /*-----------------------------------------------------------*/
 #if PLATFORM == P_ARDUINO
-#   define SAVE_CONTEXT()									\
-	asm volatile (	/* Save r0, and then use it to store SREG value */ \
-                    /* we store it now to have the value SREG had before interrupts were removed */ \
-                    "push	r0						\n\t"	\
-					"in		r0, __SREG__			\n\t"	\
-                    /* Clear interrupt bit */               \
-					"cli							\n\t"	\
-                    /* Save SREG into stack */              \
-					"push	r0						\n\t"	\
-                    /* Save the general purpose registers r1-r31 (r0 already saved) */ \
-					"push	r1						\n\t"	\
-                    /* Clear r1 because AVR GCC compiler expects r1 to be always 0 (it is the __zero_reg__) */ \
-					"clr	r1						\n\t"	\
-					"push	r2						\n\t"	\
-					"push	r3						\n\t"	\
-					"push	r4						\n\t"	\
-					"push	r5						\n\t"	\
-					"push	r6						\n\t"	\
-					"push	r7						\n\t"	\
-					"push	r8						\n\t"	\
-					"push	r9						\n\t"	\
-					"push	r10						\n\t"	\
-					"push	r11						\n\t"	\
-					"push	r12						\n\t"	\
-					"push	r13						\n\t"	\
-					"push	r14						\n\t"	\
-					"push	r15						\n\t"	\
-					"push	r16						\n\t"	\
-					"push	r17						\n\t"	\
-					"push	r18						\n\t"	\
-					"push	r19						\n\t"	\
-					"push	r20						\n\t"	\
-					"push	r21						\n\t"	\
-					"push	r22						\n\t"	\
-					"push	r23						\n\t"	\
-					"push	r24						\n\t"	\
-					"push	r25						\n\t"	\
-					"push	r26						\n\t"	\
-					"push	r27						\n\t"	\
-					"push	r28						\n\t"	\
-					"push	r29						\n\t"	\
-					"push	r30						\n\t"	\
-					"push	r31						\n\t"	\
-					/* Load context pointer from dataspace to register x */ \
-					/* x register is r27:r26 */             \
-					"lds	r26, pxCurrentContext		\n\t"	\
-					"lds	r27, pxCurrentContext + 1	\n\t"	\
-					/* Now save Stack pointer SPL (IO Register 0x3d) in x, and increment x */ \
-					"in		r0, __SP_L__			\n\t"	\
-					"st		x+, r0					\n\t"	\
-					/* Now save Stack pointer SPH (IO Register 0x3e) in x, and increment x */ \
-					"in		r0, __SP_H__			\n\t"	\
-					"st		x+, r0					\n\t"	\
-					/* This las operation has the effect of setting pxCurrentContext to the current SP */ \
-				);
+#   define SAVE_CONTEXT()              \
+  __asm__ __volatile__ (                       \
+  /* Save r0, and then use it to store SREG value we store it now to have the value SREG had before interrupts were removed */\
+  "push r0 \n\t"                       \
+  "in r0, __SREG__ \n\t"               \
+  "push	r0 \n\t"/* Save SREG into stack */\
+  "push	r1 \n\t"/* Save the general purpose registers r1-r31 (r0 already saved) */\
+  "clr	r1 \n\t"/* Clear r1 because AVR GCC compiler expects r1 to be always 0 (it is the __zero_reg__) */\
+  "push	r2 \n\t"                       \
+  "push	r3 \n\t"                       \
+  "push	r4 \n\t"                       \
+  "push	r5 \n\t"                       \
+  "push	r6 \n\t"                       \
+  "push	r7 \n\t"                       \
+  "push	r8 \n\t"                       \
+  "push	r9 \n\t"                       \
+  "push	r10 \n\t"                      \
+  "push	r11 \n\t"                      \
+  "push	r12 \n\t"                      \
+  "push	r13 \n\t"                      \
+  "push	r14 \n\t"                      \
+  "push	r15 \n\t"                      \
+  "push	r16 \n\t"                      \
+  "push	r17 \n\t"                      \
+  "push	r18 \n\t"                      \
+  "push	r19 \n\t"                      \
+  "push	r20 \n\t"                      \
+  "push	r21 \n\t"                      \
+  "push	r22 \n\t"                      \
+  "push	r23 \n\t"                      \
+  "push	r24 \n\t"                      \
+  "push	r25 \n\t"                      \
+  "push	r26 \n\t"                      \
+  "push	r27 \n\t"                      \
+  "push	r28 \n\t"                      \
+  "push r29 \n\t"                      \
+  "push	r30 \n\t"                      \
+  "push r31 \n\t"                      \
+  "lds	r26, pxCurrentContext \n\t"/* Load context pointer from dataspace to register x*/\
+  "lds	r27, pxCurrentContext + 1 \n\t"/*x register is r27:r26*/\
+  "in r0, __SP_L__ \n\t"/* Now save Stack pointer SPL (IO Register 0x3d) in x,*/\
+  "st x+, r0 \n\t"/*and increment x */ \
+  "in r0, __SP_H__ \n\t"/* Now save Stack pointer SPH (IO Register 0x3e) in x,*/\
+  "st x+, r0 \n\t" /*and increment x */\
+  );/* This las operation has the effect of setting pxCurrentContext to the current SP */
 
 #   define LOAD_CONTEXT()								\
 	asm volatile (  /* Load context pointer from dataspace to register x */ \
@@ -178,13 +168,13 @@ cab_t           cabs;          /* CAB structure */
 /*-----------------------------------------------------------*/
 inline void init_TBCs()
 {
-  Serial.println("Init TCB");
+ // Serial.println("Init TCB");
     proc i;
     for (i = 0; i < MAXPROC - 1; i++) {
         vdes[i].next = i + 1;
     }
     vdes[MAXPROC-1].next = NIL;
-    Serial.println("End TCB");
+   // Serial.println("End TCB");
 }
 
 /*-----------------------------------------------------------*/
@@ -192,7 +182,7 @@ inline void init_TBCs()
 /*-----------------------------------------------------------*/
 inline void init_SCBs()
 {
-  Serial.println("Init SCB");
+ // Serial.println("Init SCB");
     sem i;
     for (i = 0; i < MAXSEM - 1; i++) {
         vsem[i].next = i + 1;
@@ -200,7 +190,7 @@ inline void init_SCBs()
     vsem[MAXSEM-1].next = NIL;
     ready = idle = zombie = NIL;
     freetcb = freesem = 0;
-    Serial.println("End SCB");
+//    Serial.println("End SCB");
 }
 
 /*-----------------------------------------------------------*/
@@ -208,7 +198,7 @@ inline void init_SCBs()
 /*-----------------------------------------------------------*/
 inline void init_CABs()
 {
-  Serial.println("Init CAB");
+    Serial.println("Init CAB");
     cab i;
 
     cabcb.free = 0;
@@ -227,33 +217,11 @@ inline void init_CABs()
 /*-----------------------------------------------------------*/
 /* ini_system ---  system initialization	             */
 /*-----------------------------------------------------------*/
-void ini_system(float tick)
-{
-
-    Serial.println("executing 'ini_system'...");
-    delay(1000);
-
-    Serial.print("Time unit=");
-    Serial.println(tick);
-    delay(500);
-
-    Serial.println("Initializing list of free TCBs...");
-    delay(500);
-    /* initialize the list of free TCBs */
-    init_TBCs();
-    
-
+void ini_system(float tick){
+    init_TBCs();/* initialize the list of free TCBs */
     // < initialize the interrupt vector table >
-
-    Serial.println("Initializing list of free semaphores..." );
-    delay(500);
-    /* initialize the list of free semaphores */
-    init_SCBs();
-
-    Serial.println("Initializing CABs..." );
-    delay(500);
-    /* initialize the CABs */
-    init_CABs();
+    init_SCBs();/* initialize the list of free semaphores */
+    //init_CABs();/* initialize the CABs */
 
 //    util_fact = 0;
 
@@ -297,9 +265,23 @@ void save_context(void)
         But if we do so, there is no way to know the previous state
         of SREG. Additionally, we may have to reenable them in
         load_context() if we disable here. */
+        Serial.println("save1");
     /*noInterrupts();// < disable interrupts >*/
+    delay(1000);
     pxCurrentContext = vdes[pexe].context;
+
+    Serial.println("pxCurrentContext="+*pxCurrentContext);
+    delay(1000);
+
+
+
+//Serial.print("Time unit=");
+    //Serial.println(tick);
+    Serial.println("save2");
+    
     SAVE_CONTEXT();
+    Serial.println("save3");
+    
 }
 
 /*-----------------------------------------------------------*/
@@ -309,6 +291,7 @@ void load_context(void)
 {
     pxCurrentContext = vdes[pexe].context;
     LOAD_CONTEXT();
+    interrupts();// < enable interrupts >
 
 	/* Simulate a function call end as generated by the compiler.  We will now
 	jump to the start of the task the context of which we have just restored. */
@@ -324,22 +307,26 @@ void load_context(void)
 /*-----------------------------------------------------------*/
  void insert(proc i, queue *que)
 {
+  
+    Serial.println("INSERT");
+    delay(399);
     /*  que is the pointer to the queue to be used	    	*/
-    long dl;         /* deadline of the task to be inserted 	*/
+    unsigned long dl;         /* deadline of the task to be inserted 	*/
     int  p;          /* pointer to the previous TCB         	*/
     int  q;          /* pointer to the next TCB             	*/
 
     p = NIL;      /* Start at the beginning of the queue 	*/
     q = *que;
     dl = vdes[i].dline; /*Use deadline of the current TCB	*/
-
+    
     /* find the element before the insertion point	*/
     while (( q != NIL ) && ( dl >= vdes[q].dline )) {
         /* Surf queue gradually until .. 		*/
         p = q;
         q = vdes[q].next;
     }
-
+    Serial.println("INSERT2");
+    delay(399);
     if (p != NIL) {
         vdes[p].next = i;
     }
@@ -405,7 +392,7 @@ proc getfirst(queue *que)
 /*-----------------------------------------------------------*/
 /* firstdline  ---  returns the deadline of the first task   */
 /*-----------------------------------------------------------*/
-long firstdline(queue *que)
+unsigned long firstdline(queue *que)
 {
      return vdes[*que].dline;
 };
@@ -436,7 +423,13 @@ void schedule(void)
     /* The smaller P_i is, the higher its priority is. */
     /* Has first task in ready queue earlier */
     /* period as an ongoing task? */
+    delay(300);
+    Serial.println("$$$$");
+    delay(300);
     if (firstdline(&ready) < vdes[pexe].dline) {
+        delay(300);
+        Serial.println("%%%%");
+        delay(300);
         vdes[pexe].state = READY;
         insert(pexe, &ready);   /*... then manage the ongoing */
                                 /*    task in the ready queue ... */
@@ -596,23 +589,38 @@ proc create (
 /*-----------------------------------------------------------*/
 /* activate  --- inserts a task in the ready queue           */
 /*-----------------------------------------------------------*/
- int activate(proc p)
+ void activate(proc p)
  {
+    Serial.println("ACTIVATE");
+    delay(300);
     save_context ();
+    Serial.println("ACTIVATE0");
+    delay(300);
     if (vdes[p].type == HARD) {     /* update the deadline */
         vdes[p].dline = sys_clock + (long)vdes[p].period;
     }
                         /* period == relative deadline */
+    Serial.println("ACTIVATE1");
+    delay(300);
     vdes[p].state = READY;
+    Serial.println("ACTIVATE2");
+    delay(300);
     insert(p, &ready);
+    Serial.println("ACTIVATE3");
+    delay(300);
     schedule();   /* Whenever the ready queue changes, ... */
+    Serial.println("ACTIVATE4");
+    delay(300);
     load_context();
+    Serial.println("ACTIVATE5");
+    delay(300);
+    
  }
 
 /*-----------------------------------------------------------*/
 /* sleep  --- suspends itself in a sleep state               */
 /*-----------------------------------------------------------*/
-int sleep(void)
+void sleep(void)
 {
     save_context();
     vdes[pexe].state = SLEEP;
@@ -624,9 +632,9 @@ int sleep(void)
 /*-----------------------------------------------------------*/
 /* end_cycle  --- inserts a task in the idle queue           */
 /*-----------------------------------------------------------*/
-int end_cycle(void)
+void end_cycle(void)
 {
-    long dl;
+    unsigned long dl;
 
     save_context();
     dl = vdes[pexe].dline;
@@ -649,7 +657,7 @@ int end_cycle(void)
 /*-----------------------------------------------------------*/
 /* end_process  ---  inserts a task in the idle queue        */
 /*-----------------------------------------------------------*/
- int end_process(void)
+ void end_process(void)
  {
     noInterrupts(); //< disable cpu interrupts >
     if (vdes[pexe].type == HARD) {
@@ -756,7 +764,7 @@ void wait(sem s)
     proc p;
 
     noInterrupts(); //< disable cpu interrupts >
-    if (!empty(&vsem[s].qsem)) { /* When there is a task that
+    if (!empty(&vsem[s].qsem)) { /* When there is a task that */
                               /* is waiting for the semaphore */
         p = getfirst(&vsem[s].qsem);
         vdes[p].state = READY;
