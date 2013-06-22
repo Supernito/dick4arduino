@@ -178,11 +178,13 @@ cab_t           cabs;          /* CAB structure */
 /*-----------------------------------------------------------*/
 inline void init_TBCs()
 {
+  Serial.println("Init TCB");
     proc i;
     for (i = 0; i < MAXPROC - 1; i++) {
         vdes[i].next = i + 1;
     }
     vdes[MAXPROC-1].next = NIL;
+    Serial.println("End TCB");
 }
 
 /*-----------------------------------------------------------*/
@@ -190,6 +192,7 @@ inline void init_TBCs()
 /*-----------------------------------------------------------*/
 inline void init_SCBs()
 {
+  Serial.println("Init SCB");
     sem i;
     for (i = 0; i < MAXSEM - 1; i++) {
         vsem[i].next = i + 1;
@@ -197,6 +200,7 @@ inline void init_SCBs()
     vsem[MAXSEM-1].next = NIL;
     ready = idle = zombie = NIL;
     freetcb = freesem = 0;
+    Serial.println("End SCB");
 }
 
 /*-----------------------------------------------------------*/
@@ -204,6 +208,7 @@ inline void init_SCBs()
 /*-----------------------------------------------------------*/
 inline void init_CABs()
 {
+  Serial.println("Init CAB");
     cab i;
 
     cabcb.free = 0;
@@ -216,6 +221,7 @@ inline void init_CABs()
         mrbs[i].use = 0;
     }
     mrbs[cabcb.max_buf-1].next = NIL;
+    Serial.println("End CAB");
 }
 
 /*-----------------------------------------------------------*/
@@ -224,37 +230,32 @@ inline void init_CABs()
 void ini_system(float tick)
 {
 
-    Serial.println("executing 'ini_system'..." );
+    Serial.println("executing 'ini_system'...");
     delay(1000);
 
-    Serial.print("Time unit=" );
-    Serial.println(tick, 6);
+    Serial.print("Time unit=");
+    Serial.println(tick);
     delay(500);
 
-    pinMode(ledPin12, OUTPUT);
-    pinMode(ledPin13, OUTPUT);
-
-    Serial.println("Initializing list of free TCBs..." );
+    Serial.println("Initializing list of free TCBs...");
     delay(500);
+    /* initialize the list of free TCBs */
+    init_TBCs();
+    
 
     // < initialize the interrupt vector table >
 
-    /* initialize the list of free TCBs */
-    init_TBCs();
-
     Serial.println("Initializing list of free semaphores..." );
     delay(500);
-
     /* initialize the list of free semaphores */
     init_SCBs();
 
     Serial.println("Initializing CABs..." );
     delay(500);
-
     /* initialize the CABs */
     init_CABs();
 
-    util_fact = 0;
+//    util_fact = 0;
 
     // < initialize the TCB of the main process >
     // pexe = <main index>;

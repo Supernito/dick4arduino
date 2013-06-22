@@ -9,23 +9,16 @@
 /*                  RTOS                                     */
 /*-----------------------------------------------------------*/
 #include "udick.h"
+#define timeTick 62500
 
-/*-----------------------------------------------------------*/
-/*  Timer, serial comms. and test PINs initialization        */
-/*-----------------------------------------------------------*/
 /*void setup() {
-    // initialize serial communications at 9600 bps:
-    Serial.begin(9600);
-
     Serial.println("System's setup..." );
-    delay(1000);
 
     // < enable the timer to interrupt every time_unit >
     Serial.println("Setting up timer..." );
-    delay(1000);
 
     // initialize timer1
-    noInterrupts();          // disable all interrupts
+    
         TCCR1A = 0;
         TCCR1B = 0;
         TCNT1  = 0;
@@ -34,14 +27,10 @@
         TCCR1B |= (1 << WGM12);  // CTC mode
         TCCR1B |= (1 << CS12);   // 256 prescaler
         TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
-    interrupts();            // enable all interrupts
+    
 
     ini_system(tick);
 }*/
-
-/*-----------------------------------------------------------*/
-/*                             Main                          */
-/*-----------------------------------------------------------*/
 /*void loop()
 {
     // our program here...
@@ -66,34 +55,59 @@
     digitalWrite(ledPin13, 0);
     delay(500);
 }*/
-
+/*-----------------------------------------------------------*/
+/*  Timer, serial comms. and test PINs initialization        */
+/*-----------------------------------------------------------*/
 void setup(){
+  // initialize serial communications at 9600 bps:
   Serial.begin(9600);
+  Serial.println("Initializing the system...");
+//  delay(1000);
+  Serial.println(timeTick);
+  //noInterrupts();          // disable all interrupts
+  ini_system(timeTick);
+//  interrupts();            // enable all interrupts
+  
+  //Serial.println("System initialized.");
+  //delay(500);
+  pinMode(ledPin11, OUTPUT);
+  pinMode(ledPin12, OUTPUT);
+  pinMode(ledPin13, OUTPUT);
+  
 }
 
-
+/*-----------------------------------------------------------*/
+/*                             Main                          */
+/*-----------------------------------------------------------*/
 void loop(){
     int val = analogRead(analogPin0);
     float slice = 256.0;
     float level = val/slice;
+    //Serial.print("El valor de level es:");
+    //Serial.println(level);
     if (level >= 0 && level<=1){
         digitalWrite(ledPin11, 0);
         digitalWrite(ledPin12, 0);
         digitalWrite(ledPin13, 0);
+    //    Serial.println("Estoy entre 0 y 1");
     }else if(level > 1 && level<=2){
         digitalWrite(ledPin11, 1);
         digitalWrite(ledPin12, 0);
         digitalWrite(ledPin13, 0);
+    //    Serial.println("Estoy entre 1 y 2");
     }else if(level > 2 && level<=3){
         digitalWrite(ledPin11, 1);
         digitalWrite(ledPin12, 1);
         digitalWrite(ledPin13, 0);
+    //    Serial.println("Estoy entre 2 y 3");
     }else if(level > 3){
         digitalWrite(ledPin11, 1);
         digitalWrite(ledPin12, 1);
         digitalWrite(ledPin13, 1);
+    //    Serial.println("Estoy en mas de 3");
     }
-    Serial.println(val);
+    //Serial.println("El valor es:");
+    //Serial.println(val);
     delay(100);
 }
 
@@ -103,6 +117,7 @@ void loop(){
 proc cycle()
 {
     while (TRUE) {
+      Serial.println("Estamos en la tarea periodica.");
         /* < periodic code > */
         end_cycle();
     }
