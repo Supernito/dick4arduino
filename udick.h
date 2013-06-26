@@ -28,6 +28,7 @@ typedef  char*  pointer;  /* memory pointer 	                       */
 #define TRUE        1
 #define FALSE       0
 #define LIFETIME    MAXDLINE - PRT_LEV
+#define MAX_STACK_SIZE 512
 
 /*-----------------------------------------------------------*/
 /*                      Task types                           */
@@ -95,6 +96,13 @@ typedef struct tcb {
     proc   next;             /* pointer to the next tcb     */
     proc   prev;             /* pointer to previous tcb     */
 } tcb_t;
+
+/*---------------------------------------------------------*/
+/*          Context data structure definition        	   */
+/*---------------------------------------------------------*/
+typedef struct context_data {
+    unsigned char data[MAX_STACK_SIZE];
+} context_data_t;
 
 /*-----------------------------------------------------------*/
 /*       Semaphore Control Block structure definition        */

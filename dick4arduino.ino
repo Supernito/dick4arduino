@@ -30,16 +30,16 @@ void setup(){
   Serial.begin(9600);
   
   Serial.println("Initializing the system...");
-  noInterrupts();          // disable all interrupts
+ 
   ini_system(timeTick);
-  interrupts();            // enable all interrupts
+
   Serial.println("System initialized.");
 
   delay(300);
   
   Serial.println("Creada la tarea");
   delay(300);
-  char* ciclo = "ciclo       ";
+  char ciclo[] = "ciclo       ";
   t1= create(ciclo, cycle, HARD, T1, WCET1);
   Serial.println("Activar la tarea");
   delay(300);
