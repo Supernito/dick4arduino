@@ -180,6 +180,10 @@ inline void init_TBCs()
         vdes[i].next = i + 1;
     }
     vdes[MAXPROC-1].next = NIL;
+
+   // initialize contexts
+   memset(context_pool, 0, sizeof(context_data_t)*MAXPROC);
+
    // Serial.println("End TCB");
 }
 
@@ -221,6 +225,14 @@ inline void init_TBCs()
 }*/
 
 /*-----------------------------------------------------------*/
+/* init_contexts ---  initialize the contexts                */
+/*-----------------------------------------------------------*/
+inline void init_contexts()
+{
+    memset(context_pool, 0, sizeof(context_data_t)*MAXPROC);
+}
+
+/*-----------------------------------------------------------*/
 /* ini_system ---  system initialization	             */
 /*-----------------------------------------------------------*/
 
@@ -235,6 +247,7 @@ void ini_system(float tick){
     // < initialize the interrupt vector table >
     //init_SCBs();/* initialize the list of free semaphores */
     //init_CABs();/* initialize the CABs */
+    
 
 //    util_fact = 0;
     char name[13] = "m_process   ";
