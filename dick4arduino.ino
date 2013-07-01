@@ -28,28 +28,61 @@ void setup(){
   digitalWrite(ledPin13, HIGH);
   // initialize serial communications at 9600 bps:
   Serial.begin(9600);
+  delay(500);
+//  Serial.println("Initializing the system...");
   
-  Serial.println("Initializing the system...");
- 
+/*----------------------------------------------------------------------*/
+/*                Configura timer 1                                     */
+/*----------------------------------------------------------------------*/
+  noInterrupts();          // disable all interrupts
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1  = 0;
+
+  OCR1A = 4096;              // compare match register 16MHz (16E6/256=62500)  62500/62= 1000 Hz, Tick=1ms
+  TCCR1B |= (1 << WGM12);  // CTC mode
+  TCCR1B |= (1 << CS12);   // 256 prescaler 
+  TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+  interrupts();            // enable all interrupts
+  //-------------------------------------------------
   ini_system(timeTick);
 
-  Serial.println("System initialized.");
+//  Serial.println("System initialized.");
 
-  delay(300);
+  //delay(300);
   
   Serial.println("Creada la tarea");
   delay(300);
   char ciclo[] = "ciclo       ";
-  t1= create(ciclo, cycle, HARD, T1, WCET1);
+  noInterrupts();
+  //t1= create(ciclo, cycle, HARD, T1, WCET1);
+  interrupts();
   Serial.println("Activar la tarea");
   delay(300);
+  
 //  Serial.println(pexe);
-    activate(t1);
+//activate(t1);
 //  delay(1000);
 //  Serial.println("cosa");
 //  Serial.println("hola");
 //  abort();
   digitalWrite(ledPin13, LOW);
+  
+}
+
+/*----------------------------------------------------------------------*/
+/*                Basic Timer Interrupt Service Routine                 */
+/*----------------------------------------------------------------------*/
+ISR(TIMER1_COMPA_vect)          // timer compare interrupt service routine
+{
+  //digitalWrite(ledPin12, digitalRead(ledPin12) ^ 1);   // toggle LED pin
+  //sys_clock++;
+  if(digitalRead(ledPin13) == 1){
+    digitalWrite(ledPin13,0);
+  }else{
+    digitalWrite(ledPin13,1);
+  }
+  
 }
 
 /*-----------------------------------------------------------*/
@@ -60,8 +93,8 @@ void loop(){
     int val = analogRead(analogPin0);
     float slice = 256.0;
     float level = val/slice;
-    Serial.print("El valor de level es:");
-    Serial.println(level);
+    //Serial.print("El valor de level es:");
+    //Serial.println(level);
     if (level >= 0 && level<=1){
         digitalWrite(ledPin11, 0);
         digitalWrite(ledPin12, 0);

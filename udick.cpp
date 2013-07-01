@@ -223,17 +223,43 @@ inline void init_CABs()
 /*-----------------------------------------------------------*/
 /* ini_system ---  system initialization	             */
 /*-----------------------------------------------------------*/
+
+proc m_process(){
+  end_cycle();
+  return 0;
+}
+
 void ini_system(float tick){
+    proc p = 1;
     init_TBCs();/* initialize the list of free TCBs */
     // < initialize the interrupt vector table >
     init_SCBs();/* initialize the list of free semaphores */
     //init_CABs();/* initialize the CABs */
 
 //    util_fact = 0;
-
+    char name[13] = "m_process   ";
     // < initialize the TCB of the main process >
     // pexe = <main index>;
-    pexe = 0;
+    noInterrupts(); //< disable cpu interrupts >
+    p = getfirst(&freetcb);
+    Serial.println(p);
+    delay(300);
+    // Copy task name
+    //memcpy(vdes[p].name,name,13);
+    //vdes[p].addr = m_process;
+    vdes[p].type = HARD;
+    vdes[p].state = SLEEP;
+    vdes[p].period = (int)( 2000 / time_unit );
+    vdes[p].wcet = (int)( 0 / time_unit );
+    vdes[p].util =  0;
+    vdes[p].prt = (int)2000/time_unit;
+    vdes[p].dline =  MAX_LONG;
+           /* ^ dline is set by supposing this task is a NRT */
+           /* The value is updated if this task is not a NRT */
+//      < initialize process stack >
+    //vdes[p].context = (Context)context_pool[p].data;
+    interrupts(); //< enable cpu interrupts >
+    pexe = p;
 };
 
 /*===========================================================*/
@@ -247,15 +273,6 @@ void ini_system(float tick){
 float get_time(void)
 {
     return tick * sys_clock;
-}
-
-/*----------------------------------------------------------------------*/
-/*                Basic Timer Interrupt Service Routine                 */
-/*----------------------------------------------------------------------*/
-ISR(TIMER1_COMPA_vect)          // timer compare interrupt service routine
-{
-    digitalWrite(ledPin12, digitalRead(ledPin12) ^ 1);   // toggle LED pin
-    sys_clock++;
 }
 
 /*===========================================================*/
@@ -549,17 +566,17 @@ proc create (
 	float       wcet               /* execution time */
 	)
 {
-    static const long MAX_LONG = pow(2, 16) - 1;
+    //static const long MAX_LONG = pow(2, 16) - 1;
 
-    proc p;
+    proc p=0;
 
-    noInterrupts(); //< disable cpu interrupts >
-    p = getfirst(&freetcb);
-    if (p == NIL) {
+    //noInterrupts(); //< disable cpu interrupts >
+    //p = getfirst(&freetcb);
+    /*if (p == NIL) {
         abort(NO_TCB);
     }
     // Copy task name
-    strcpy(vdes[p].name, name);
+    /*strcpy(vdes[p].name, name);
     vdes[p].addr = addr;
     vdes[p].type = type;
     vdes[p].state = SLEEP;
@@ -570,16 +587,15 @@ proc create (
     vdes[p].dline =  MAX_LONG -PRT_LEV + (long)period;
            /* ^ dline is set by supposing this task is a NRT */
            /* The value is updated if this task is not a NRT */
-    if (vdes[p].type == HARD) {
+   /* if (vdes[p].type == HARD) {
         if (!guarantee(p)) {
             return NO_GUARANTEE;
         }
-    }
+    }*/
 //      < initialize process stack >
-    vdes[p].context = (Context)context_pool[p].data;
+    //vdes[p].context = (Context)context_pool[p].data;
 
-
-    interrupts(); //< enable cpu interrupts >
+    //interrupts(); //< enable cpu interrupts >
 
     return p;
 }
