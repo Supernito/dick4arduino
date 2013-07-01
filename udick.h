@@ -20,8 +20,8 @@ typedef  char*  pointer;  /* memory pointer 	                       */
 /*                      Global constants                               */
 /*---------------------------------------------------------------------*/
 #define MAXLEN      12           /* max string length		   */
-#define MAXPROC     32           /* max number of tasks		   */
-#define MAXSEM      32           /* max number of semaphores   */
+#define MAXPROC     4           /* max number of tasks		   */
+#define MAXSEM      1           /* max number of semaphores   */
 #define MAXDLINE    0x7FFFFFFF   /* max deadline		       */
 #define PRT_LEV     255          /* priority levels		       */
 #define NIL         -1           /* null pointer		       */
@@ -79,7 +79,7 @@ extern float            tick;               /* tick */
 /*---------------------------------------------------------*/
 /*          Task Control Block structure definition        */
 /*---------------------------------------------------------*/
-typedef int* Context;
+typedef proc (*Context)();
 
 typedef struct tcb {
     char   name[MAXLEN+1];   /* task identifier name        */
@@ -107,38 +107,38 @@ typedef struct context_data {
 /*-----------------------------------------------------------*/
 /*       Semaphore Control Block structure definition        */
 /*-----------------------------------------------------------*/
-typedef struct scb {
-    int    count;            /* semaphore counter             */
-    queue  qsem;             /* semaphore queue               */
-    sem    next;             /* pointer to the next semaphore */
-} scb_t;
+//typedef struct scb {
+ //   int    count;            /* semaphore counter             */
+  //  queue  qsem;             /* semaphore queue               */
+ //   sem    next;             /* pointer to the next semaphore */
+//} scb_t;
 
 /*-----------------------------------------------------------*/
 /*   Cyclic Asynchronous Buffer (CAB) structure definition   */
 /*-----------------------------------------------------------*/
 #define BUFFER_SIZE 32
-#define BUFFER_MAX 16
+#define BUFFER_MAX 4
 
 typedef char buffer;
 
-typedef struct mrb {
-    cab next;                   /* An index to the next MRB in the list */
-    cab use;                    /* A counter that stores the current number of tasks */
+//typedef struct mrb {
+//    cab next;                   /* An index to the next MRB in the list */
+//    cab use;                    /* A counter that stores the current number of tasks */
                                 /* accessing that buffer */
-    buffer data[BUFFER_SIZE];   /* Memory area for storing the message */
-} mrb_t;
+//    buffer data[BUFFER_SIZE];   /* Memory area for storing the message */
+//} mrb_t;
 
-typedef struct cab_cb {
-    cab free;                   /* An index to maintain a list of free buffers */
-    cab mrb;                    /* An index to the most recent buffer */
-    int max_buf;                /* The maximum number of buffers */
-    long dim_buf;               /* The dimension of the buffers */
-} cabcb_t;
+//typedef struct cab_cb {
+//    cab free;                   /* An index to maintain a list of free buffers */
+ //   cab mrb;                    /* An index to the most recent buffer */
+//    int max_buf;                /* The maximum number of buffers */
+//    long dim_buf;               /* The dimension of the buffers */
+//} cabcb_t;
 
-typedef struct cab_t {
-    cabcb_t cab_cbs;
-    mrb_t vmrbs[BUFFER_MAX];
-} cab_t;
+//typedef struct cab_t {
+//    cabcb_t cab_cbs;
+//    mrb_t vmrbs[BUFFER_MAX];
+//} cab_t;
 
 
 /*===========================================================*/

@@ -25,7 +25,6 @@ void setup(){
   pinMode(ledPin11, OUTPUT);
   pinMode(ledPin12, OUTPUT);
   pinMode(ledPin13, OUTPUT);
-  digitalWrite(ledPin13, HIGH);
   // initialize serial communications at 9600 bps:
   Serial.begin(9600);
   delay(500);
@@ -43,7 +42,7 @@ void setup(){
   TCCR1B |= (1 << WGM12);  // CTC mode
   TCCR1B |= (1 << CS12);   // 256 prescaler 
   TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
-  interrupts();            // enable all interrupts
+  //interrupts();            // enable all interrupts
   //-------------------------------------------------
   ini_system(timeTick);
 
@@ -54,20 +53,20 @@ void setup(){
   Serial.println("Creada la tarea");
   delay(300);
   char ciclo[] = "ciclo       ";
-  noInterrupts();
-  //t1= create(ciclo, cycle, HARD, T1, WCET1);
-  interrupts();
+  //noInterrupts();
+  Serial.println((int)cycle);
+  t1= create(ciclo, cycle, HARD, T1, WCET1);
+  //interrupts();
   Serial.println("Activar la tarea");
   delay(300);
   
 //  Serial.println(pexe);
-//activate(t1);
-//  delay(1000);
-//  Serial.println("cosa");
-//  Serial.println("hola");
+  //noInterrupts();
+  activate(t1);
+  interrupts();
 //  abort();
-  digitalWrite(ledPin13, LOW);
-  
+  digitalWrite(ledPin11, HIGH);
+  digitalWrite(ledPin12, HIGH);
 }
 
 /*----------------------------------------------------------------------*/
@@ -95,7 +94,7 @@ void loop(){
     float level = val/slice;
     //Serial.print("El valor de level es:");
     //Serial.println(level);
-    if (level >= 0 && level<=1){
+    /*if (level >= 0 && level<=1){
         digitalWrite(ledPin11, 0);
         digitalWrite(ledPin12, 0);
         digitalWrite(ledPin13, 0);
@@ -115,8 +114,8 @@ void loop(){
         digitalWrite(ledPin12, 1);
         digitalWrite(ledPin13, 1);
     //    Serial.println("Estoy en mas de 3");
-    }
-    //Serial.println("El valor es:");
+    }*/
+    Serial.println("El valor es:");
     //Serial.println(val);
     delay(100);
 }
@@ -130,7 +129,7 @@ proc cycle()
       Serial.println("Estamos en la tarea periodica.");
       digitalWrite(ledPin13, 1);
       delay(1000);
-      digitalWrite(ledPin13, 0);
+      digitalWrite(ledPin11, 0);
         /* < periodic code > */
         end_cycle();
 //    }
